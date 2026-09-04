@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+
+# SvelteKit / Vite build output
+.svelte-kit
+build
+.vercel
+.netlify
+.wrangler
+
+# Packed tarballs — build artifacts, produced by `npm pack`
+*.tgz
+
+# The component library is its own git repository (docs/decisions.md ADR-001).
+# It is pushed separately and consumed from npm, not vendored here.
+recipe-ui-kit/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Test output
+coverage
+**/__screenshots__
+
+# Tooling caches
+.eslintcache
