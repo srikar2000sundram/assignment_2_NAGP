@@ -1,0 +1,627 @@
+/* ---------------------------------------------------------------------
+   Design tokens. Namespaced --ruik-* so recipe-ui-kit's shadow-DOM
+   components pick these up too — CSS custom properties inherit through
+   shadow boundaries, so defining them once here themes the whole app,
+   library included, with no prop-drilling. Each component keeps its own
+   var(--ruik-x, fallback) so it still looks intentional used standalone.
+   ------------------------------------------------------------------- */
+:root {
+	--ruik-color-bg: #fbf7f2;
+	--ruik-color-surface: #ffffff;
+	--ruik-color-surface-alt: #f4ede2;
+	--ruik-color-border: #e8dfd0;
+	--ruik-color-text: #241c14;
+	--ruik-color-text-muted: #85786a;
+	--ruik-color-primary: #c2410c;
+	--ruik-color-primary-hover: #9a3412;
+	--ruik-color-on-primary: #fff8f2;
+	--ruik-color-accent: #4d7c58;
+	--ruik-color-danger: #b3261e;
+	--ruik-color-danger-hover: #8c1d17;
+	--ruik-color-focus: #c2410c;
+
+	--ruik-radius-sm: 8px;
+	--ruik-radius-md: 14px;
+	--ruik-radius-lg: 22px;
+	--ruik-radius-pill: 999px;
+
+	--ruik-shadow-sm: 0 1px 2px rgba(36, 24, 12, 0.06);
+	--ruik-shadow-md: 0 10px 24px -8px rgba(36, 24, 12, 0.16);
+	--ruik-shadow-lg: 0 24px 60px -16px rgba(36, 24, 12, 0.28);
+
+	--ruik-font-serif:
+		'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+	--ruik-font-sans: -apple-system, 'Segoe UI', system-ui, Roboto, sans-serif;
+
+	--max-width: 1080px;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--ruik-color-bg: #16130e;
+		--ruik-color-surface: #201a13;
+		--ruik-color-surface-alt: #2a2318;
+		--ruik-color-border: #3b3122;
+		--ruik-color-text: #f3ece0;
+		--ruik-color-text-muted: #ab9d89;
+		--ruik-color-primary: #f0824a;
+		--ruik-color-primary-hover: #f6a06f;
+		--ruik-color-on-primary: #22120a;
+		--ruik-color-accent: #82b78e;
+		--ruik-color-danger: #f2867e;
+		--ruik-color-danger-hover: #f6a49e;
+		--ruik-color-focus: #f0824a;
+
+		--ruik-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+		--ruik-shadow-md: 0 10px 24px -8px rgba(0, 0, 0, 0.45);
+		--ruik-shadow-lg: 0 24px 60px -16px rgba(0, 0, 0, 0.6);
+	}
+}
+
+/* ---------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------- */
+* {
+	box-sizing: border-box;
+}
+
+html {
+	color-scheme: light dark;
+}
+
+body {
+	margin: 0;
+	font-family: var(--ruik-font-sans);
+	font-size: 15px;
+	line-height: 1.55;
+	background: var(--ruik-color-bg);
+	color: var(--ruik-color-text);
+	-webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--ruik-font-serif);
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -0.01em;
+	margin: 0;
+}
+
+a {
+	color: inherit;
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+:focus-visible {
+	outline: 2px solid var(--ruik-color-focus);
+	outline-offset: 2px;
+	border-radius: var(--ruik-radius-sm);
+}
+
+/* ---------------------------------------------------------------------
+   Nav
+   ------------------------------------------------------------------- */
+.app-nav {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	gap: 28px;
+	padding: 14px 24px;
+	border-bottom: 1px solid var(--ruik-color-border);
+	background: color-mix(in srgb, var(--ruik-color-surface) 88%, transparent);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+.app-nav__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	font-family: var(--ruik-font-serif);
+	font-weight: 700;
+	font-size: 18px;
+	text-decoration: none;
+	margin-right: auto;
+	color: var(--ruik-color-text);
+}
+
+.app-nav__brand svg {
+	flex-shrink: 0;
+}
+
+.app-nav__links {
+	display: flex;
+	gap: 4px;
+}
+
+.app-nav__links a {
+	position: relative;
+	text-decoration: none;
+	font-size: 13.5px;
+	font-weight: 600;
+	padding: 8px 14px;
+	border-radius: var(--ruik-radius-pill);
+	color: var(--ruik-color-text-muted);
+	transition:
+		color 0.15s ease,
+		background 0.15s ease;
+}
+
+.app-nav__links a:hover {
+	color: var(--ruik-color-text);
+	background: var(--ruik-color-surface-alt);
+}
+
+.app-nav__links a.active {
+	color: var(--ruik-color-on-primary);
+	background: var(--ruik-color-primary);
+}
+
+/* ---------------------------------------------------------------------
+   Layout
+   ------------------------------------------------------------------- */
+.app-shell {
+	max-width: var(--max-width);
+	margin: 0 auto;
+	padding: 0 24px 80px;
+}
+
+.page-header {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin: 40px 0 32px;
+}
+
+.page-header h1 {
+	font-size: clamp(28px, 4vw, 38px);
+}
+
+.page-header p {
+	margin: 0;
+	color: var(--ruik-color-text-muted);
+	font-size: 15px;
+}
+
+.eyebrow {
+	font-size: 11.5px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--ruik-color-primary);
+}
+
+.filters-row {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+/* Each filter axis gets a label, because three unlabelled chip rows are
+   indistinguishable from one another. */
+.filter-axis {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.filter-axis__label {
+	flex-shrink: 0;
+	min-width: 104px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--ruik-color-text-muted);
+}
+
+.filter-summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 2px;
+	padding: 8px 4px 0;
+	border-top: 1px solid var(--ruik-color-border);
+	font-size: 13px;
+	color: var(--ruik-color-text-muted);
+}
+
+@media (max-width: 640px) {
+	.filter-axis__label {
+		min-width: 0;
+	}
+}
+
+section + section {
+	margin-top: 44px;
+}
+
+.section-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 18px;
+}
+
+.section-heading h2 {
+	font-size: 20px;
+}
+
+.section-heading .section-count {
+	font-size: 13px;
+	color: var(--ruik-color-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   Grids
+   ------------------------------------------------------------------- */
+.recipe-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+	gap: 20px;
+}
+
+.meal-plan-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 14px;
+}
+
+/* ---------------------------------------------------------------------
+   Empty / loading states
+   ------------------------------------------------------------------- */
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 56px 24px;
+	text-align: center;
+	color: var(--ruik-color-text-muted);
+	border: 1.5px dashed var(--ruik-color-border);
+	border-radius: var(--ruik-radius-lg);
+	background: var(--ruik-color-surface-alt);
+}
+
+.empty-state svg {
+	color: var(--ruik-color-primary);
+	opacity: 0.7;
+}
+
+.empty-state strong {
+	color: var(--ruik-color-text);
+	font-family: var(--ruik-font-serif);
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.skeleton-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+	gap: 20px;
+}
+
+.skeleton-card {
+	border-radius: var(--ruik-radius-lg);
+	overflow: hidden;
+	background: var(--ruik-color-surface);
+	border: 1px solid var(--ruik-color-border);
+}
+
+.skeleton-card__media {
+	aspect-ratio: 4 / 3;
+	background: linear-gradient(
+		100deg,
+		var(--ruik-color-surface-alt) 30%,
+		var(--ruik-color-border) 50%,
+		var(--ruik-color-surface-alt) 70%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-card__body {
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.skeleton-line {
+	height: 10px;
+	border-radius: 999px;
+	background: var(--ruik-color-surface-alt);
+	animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line--wide {
+	width: 70%;
+}
+.skeleton-line--narrow {
+	width: 40%;
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skeleton-card__media,
+	.skeleton-line {
+		animation: none;
+	}
+}
+
+/* ---------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------- */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	border-radius: var(--ruik-radius-pill);
+	padding: 10px 18px;
+	font-size: 13.5px;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+	border: 1px solid var(--ruik-color-border);
+	background: var(--ruik-color-surface);
+	color: var(--ruik-color-text);
+	transition:
+		transform 0.12s ease,
+		box-shadow 0.12s ease,
+		background 0.12s ease,
+		border-color 0.12s ease,
+		color 0.12s ease;
+}
+
+.btn:hover {
+	box-shadow: var(--ruik-shadow-sm);
+	transform: translateY(-1px);
+}
+
+.btn:active {
+	transform: translateY(0);
+}
+
+.btn--primary {
+	border-color: transparent;
+	background: var(--ruik-color-primary);
+	color: var(--ruik-color-on-primary);
+}
+
+.btn--primary:hover {
+	background: var(--ruik-color-primary-hover);
+}
+
+.btn--danger {
+	border-color: color-mix(in srgb, var(--ruik-color-danger) 45%, transparent);
+	color: var(--ruik-color-danger);
+	background: transparent;
+}
+
+.btn--danger:hover {
+	background: color-mix(in srgb, var(--ruik-color-danger) 10%, transparent);
+	border-color: var(--ruik-color-danger);
+}
+
+.btn--icon {
+	padding: 10px;
+	aspect-ratio: 1;
+}
+
+.btn--subtle {
+	padding: 6px 12px;
+	font-size: 12.5px;
+	border-color: transparent;
+	background: var(--ruik-color-surface-alt);
+	color: var(--ruik-color-text-muted);
+}
+
+.btn--subtle:hover {
+	color: var(--ruik-color-text);
+}
+
+/* Compact variant for the actions projected into a recipe card's footer slot. */
+.btn--tiny {
+	padding: 5px 11px;
+	font-size: 12px;
+	gap: 5px;
+}
+
+.btn--danger-text {
+	border-color: var(--ruik-color-border);
+	color: var(--ruik-color-danger);
+	background: transparent;
+}
+
+.btn--danger-text:hover {
+	border-color: color-mix(in srgb, var(--ruik-color-danger) 45%, transparent);
+	background: color-mix(in srgb, var(--ruik-color-danger) 8%, transparent);
+}
+
+/* Weekday picker in the "add to meal plan" dialog. */
+.day-picker {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+	gap: 8px;
+}
+
+.day-picker__day {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 12px 14px;
+	border-radius: var(--ruik-radius-md);
+	border: 1px solid var(--ruik-color-border);
+	background: var(--ruik-color-surface);
+	color: var(--ruik-color-text);
+	font: inherit;
+	font-size: 13.5px;
+	font-weight: 600;
+	cursor: pointer;
+	text-align: left;
+	transition:
+		border-color 0.12s ease,
+		background 0.12s ease;
+}
+
+.day-picker__day:hover {
+	border-color: var(--ruik-color-primary);
+	background: color-mix(in srgb, var(--ruik-color-primary) 6%, transparent);
+}
+
+.day-picker__day--taken {
+	border-style: dashed;
+}
+
+.day-picker__current {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--ruik-color-text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 50%;
+}
+
+.action-row {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+/* ---------------------------------------------------------------------
+   Recipe detail page
+   ------------------------------------------------------------------- */
+.recipe-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+	gap: 36px;
+	align-items: start;
+	margin-bottom: 40px;
+}
+
+@media (max-width: 720px) {
+	.recipe-hero {
+		grid-template-columns: 1fr;
+	}
+}
+
+.recipe-hero__media {
+	aspect-ratio: 4 / 3;
+	border-radius: var(--ruik-radius-lg);
+	overflow: hidden;
+	background: var(--ruik-color-surface-alt);
+	box-shadow: var(--ruik-shadow-md);
+}
+
+.recipe-hero__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.recipe-hero__body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.recipe-hero__title {
+	font-size: clamp(26px, 3.4vw, 36px);
+}
+
+.recipe-content {
+	display: grid;
+	grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+	gap: 40px;
+}
+
+@media (max-width: 720px) {
+	.recipe-content {
+		grid-template-columns: 1fr;
+	}
+}
+
+.recipe-content h2 {
+	font-size: 15px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--ruik-color-primary);
+	margin-bottom: 14px;
+}
+
+.ingredient-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.ingredient-list li {
+	padding: 10px 0;
+	border-bottom: 1px solid var(--ruik-color-border);
+	font-size: 14.5px;
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.ingredient-list li span:first-child {
+	font-weight: 500;
+}
+
+.ingredient-list li span:last-child {
+	color: var(--ruik-color-text-muted);
+	white-space: nowrap;
+}
+
+.instructions {
+	white-space: pre-line;
+	font-size: 15px;
+	line-height: 1.75;
+}
+
+/* ---------------------------------------------------------------------
+   Form pages (add / edit recipe)
+   ------------------------------------------------------------------- */
+.form-panel {
+	max-width: 620px;
+	margin: 0 auto;
+	background: var(--ruik-color-surface);
+	border: 1px solid var(--ruik-color-border);
+	border-radius: var(--ruik-radius-lg);
+	box-shadow: var(--ruik-shadow-sm);
+	padding: 28px;
+}
+
+@media (max-width: 560px) {
+	.form-panel {
+		padding: 20px;
+	}
+}
