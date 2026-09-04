@@ -68,29 +68,29 @@ rewrite. Deploy steps: [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md#step-3--deploy-
 
 ## Routes
 
-| Route                | Purpose                                   |
-| -------------------- | ----------------------------------------- |
+| Route                | Purpose                                              |
+| -------------------- | ---------------------------------------------------- |
 | `/`                  | Recipe Discovery — search, browse, filter (composed) |
-| `/recipes/[id]`      | Recipe details                            |
-| `/recipes/new`       | Add a recipe                              |
-| `/recipes/[id]/edit` | Edit a recipe you created                 |
-| `/favorites`         | Favorited recipes                         |
-| `/meal-plan`         | Weekly meal planner                       |
+| `/recipes/[id]`      | Recipe details                                       |
+| `/recipes/new`       | Add a recipe                                         |
+| `/recipes/[id]/edit` | Edit a recipe you created                            |
+| `/favorites`         | Favorited recipes                                    |
+| `/meal-plan`         | Weekly meal planner                                  |
 
 Full routing map, per-route rendering mode and the Stencil component
 prop/event/slot contracts: [`../docs/architecture.md`](../docs/architecture.md).
 
 ## Source layout
 
-| Path | Holds |
-|---|---|
-| `src/routes/` | Routes — orchestration and markup only |
-| `src/lib/api/` | TheMealDB client + response normalization |
-| `src/lib/search/` | Pure search/filter set algebra + curated ingredient options |
-| `src/lib/stores/` | `favorites`, `mealPlan`, `userRecipes` runes stores + the SSR-safe storage wrapper |
-| `src/lib/validation/` | Recipe form business rules |
-| `src/lib/types/` | `Recipe`, `RecipeRef`, `Weekday` |
-| `src/app.css` | `--ruik-*` design tokens (which also theme the Stencil components) + layout classes |
+| Path                  | Holds                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `src/routes/`         | Routes — orchestration and markup only                                              |
+| `src/lib/api/`        | TheMealDB client + response normalization                                           |
+| `src/lib/search/`     | Pure search/filter set algebra + curated ingredient options                         |
+| `src/lib/stores/`     | `favorites`, `mealPlan`, `userRecipes` runes stores + the SSR-safe storage wrapper  |
+| `src/lib/validation/` | Recipe form business rules                                                          |
+| `src/lib/types/`      | `Recipe`, `RecipeRef`, `Weekday`                                                    |
+| `src/app.css`         | `--ruik-*` design tokens (which also theme the Stencil components) + layout classes |
 
 The rule: routes orchestrate, `src/lib` computes. Anything worth testing
 lives in `src/lib`, and `src/lib` never imports from `src/routes`.
