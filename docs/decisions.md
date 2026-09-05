@@ -1,604 +1,274 @@
 # Decisions Log
 
-Every non-obvious call I made on this project, in the order I made them, with
-the problem that forced each one and why I landed where I did. Where I looked
-at other options and passed, I've said so. If you want to know *what* got
-built, [architecture.md](./architecture.md) is the file you want. This one is
-just the reasoning trail.
+The non-obvious calls on this project, in order, with the problem that
+forced each one. For *what* got built, see [architecture.md](./architecture.md);
+this is just the reasoning.
 
 ---
 
 ## ADR-001: Project layout — two sibling projects, one repository
 
-**Originally decided as two separate git repositories; superseded at
-submission time — see the amendment at the end of this entry. The two
-projects remain independent (separate `package.json`, separate
-`node_modules`, no workspace); only the repository count changed.**
+The brief wants two things that depend on each other: a Stencil library and
+a SvelteKit app that consumes it. The natural move is an npm workspace so
+both can be edited at once — I avoided that, because a workspace makes it
+too easy to link the local source and never notice something wouldn't have
+survived being published. So `recipe-ui-kit/` and `recipe-finder-app/` kept
+separate `package.json`s and `node_modules`, with the app installing the
+library from a packed tarball ([ADR-004](#adr-004-published-package-name))
+until it could install the real thing.
 
-The assignment wants two deliverables that depend on each other, a Stencil
-component library and a SvelteKit app that consumes it. The natural instinct
-is to wire them into an npm workspace so you can iterate on both without
-constantly rebuilding and reinstalling. I didn't do that, on purpose.
-
-The requirement isn't "the app uses the library", it's "the app consumes the
-*published* library". A workspace makes that far too easy to cheat on by
-accident. You link the local source, everything works, and you never find out
-that some export you're relying on wouldn't have survived being packaged. So
-I kept `recipe-ui-kit/` and `recipe-finder-app/` as independent folders with
-their own `package.json` and `node_modules`, no workspace protocol between
-them.
-
-The cost is that until the library is actually published, the app can't just
-`npm install @srikar_sundram/recipe-ui-kit` and work. I got around that with
-`npm pack` and a local tarball rather than a workspace link or `npm link`.
-More on that in ADR-004, which is really the same problem seen from the other
-side.
-
-### Amendment — one repository, not two
-
-In the end I shipped this as one repository,
-[assignment_2_NAGP](https://github.com/srikar2000sundram/assignment_2_NAGP),
-with both projects inside it. Two things changed my mind.
-
-The first was re-reading the deliverables list. It asks for the app's source,
-the library's source, and a "Link to **github repository**". Singular. Two
-repos would mean handing over a second link nobody asked for, and scattering
-one submission across two places for a reviewer to hunt down. My original
-reasoning was about development hygiene, which is a fine thing to care about
-but isn't what the deliverable is.
-
-The second reason matters more. The thing I was guarding against, quietly
-consuming the library from source, is already prevented by something
-stronger than folder layout. The app depends on
-`"@srikar_sundram/recipe-ui-kit": "^0.2.0"` and `package-lock.json` resolves
-that from `registry.npmjs.org`. All it can see is `dist/`, `loader/` and
-whatever the `exports` map allows. The `recipe-ui-kit/src` sitting one
-directory away might as well not exist as far as the app is concerned.
-Sharing a repo doesn't change any of that, and a checked-in lockfile is a
-much better guarantee than physical separation ever was, because you can
-actually verify it.
-
-What I lost: the library no longer has its own git history (those four
-commits got folded in when it became a subdirectory) and you can't clone it
-on its own. Neither matters here. It's on npm, so consumers install it rather
-than clone it, and its releases are tracked in
-[CHANGELOG.md](../recipe-ui-kit/CHANGELOG.md).
-
-One thing to keep straight, though: the two projects still have separate
-`package.json` files and separate `node_modules`. This is **not** an npm
-workspace, and that's deliberate. Hoisting and linking the library locally is
-exactly what would bring back the failure mode the original decision existed
-to prevent.
+That called for two git repositories at first. It ended up as one —
+[assignment_2_NAGP](https://github.com/srikar2000sundram/assignment_2_NAGP) —
+because the deliverables ask for a single "Link to github repository," and
+because the thing two repos were guarding against is already handled by
+something stronger: the app depends on `@srikar_sundram/recipe-ui-kit@^0.2.0`
+resolved from `registry.npmjs.org`, so `recipe-ui-kit/src` sitting one
+directory away is invisible to it regardless of how many repos it's in. The
+library lost its own git history in the merge, which costs nothing here —
+it's on npm, so people install it rather than clone it. The two projects
+still don't share `node_modules`; it's still not a workspace.
 
 ---
 
 ## ADR-002: Recipe data source — TheMealDB
 
-I needed a real public recipe API for search, browse, filter and detail, and
-looked at three: TheMealDB, Spoonacular and Edamam.
+I compared TheMealDB, Spoonacular, and Edamam. Spoonacular has better data
+but a low free-tier quota I didn't want to risk a reviewer hitting.
+Edamam needs two secrets and stricter attribution. TheMealDB just stays
+out of the way: a shared test key baked into the URL, no signup, and
+everything Recipe Discovery needs — search, category/area/ingredient
+filters, full detail by id.
 
-Spoonacular has much better data (nutrition, diet tags, the works) but it's
-metered on a low free-tier daily quota. I didn't want someone reviewing this
-to hit a 402 halfway through because I'd already burned the day's calls
-testing. Edamam needs two separate secrets, an App ID *and* an App Key, plus
-stricter attribution rules. That's more setup friction in a grading
-environment for no functional gain here.
-
-TheMealDB won mostly by staying out of the way. Shared free test key (just
-the literal `1` in the URL path), no signup, no auth headers, and it covers
-everything Recipe Discovery asks for: name search, category/area/ingredient
-filtering, and full detail lookup by id. Anyone cloning this can run it
-immediately with no API-key setup at all, which I cared about a lot given
-someone else has to run this cold.
-
-One consequence worth flagging, because it shaped the data model: TheMealDB
-recipes are read-only. So "add/edit/delete" (the Recipe Management
-requirement) had to become a *separate* kind of recipe that the app owns
-itself, rather than something layered on top of API data. That split is in
-[data-model.md](./data-model.md); the endpoints I actually used are in
-[api.md](./api.md).
+The real consequence: TheMealDB recipes are read-only, so "add/edit/delete"
+had to become a separate kind of recipe the app owns itself
+([data-model.md](./data-model.md)) rather than something layered on top of
+API data.
 
 ---
 
 ## ADR-003: Package manager — npm
 
-Not much of a debate. I used npm for both projects rather than pnpm or yarn,
-mainly because the brief keeps saying "npm package" and "npm Publishing
-Requirement". Using something else would mean mentally translating those
-instructions every time, and it'd be one more thing to install beyond what
-ships with Node. Not a hard requirement, just the path of least surprise.
+npm for both projects, mainly because the brief itself says "npm package"
+and "npm Publishing Requirement." Anything else is one more mental
+translation and one more install for no benefit.
 
 ---
 
 ## ADR-004: Published package name
 
-**Originally decided as unscoped `recipe-ui-kit`; superseded at publish
-time — see the amendment at the end of this entry.**
+I checked `recipe-ui-kit` was free on the registry (a 404) and shipped it
+unscoped everywhere — configs, docs, install instructions — since an
+unscoped name reads better than `@someone/recipe-ui-kit`. Publishing had to
+wait until the library was done, so in the meantime the app installed it
+from a local `npm pack` tarball rather than a workspace link, specifically
+because a tarball only exposes what the package actually publishes
+(`dist/`, `loader/`) — the same surface a real consumer would see.
 
-Before putting the name anywhere (configs, docs, install instructions) I
-checked it was actually free: `npm view recipe-ui-kit` came back 404. So I
-went with it unscoped rather than under a personal npm scope. An unscoped
-name reads better in install instructions than `@someone/recipe-ui-kit`, and
-it doesn't tie the deliverable to whoever's account happens to publish first.
-
-The harder problem underneath this: I need the app to consume the package
-like a real dependency, but I can't publish until it's finished, and I don't
-want to cut a new version every time I tweak a component. My answer was
-`npm pack`. Build the library, pack it into a real `.tgz`, and install that
-into the app rather than using a `file:` source link or `npm link`. The
-distinction matters, because a tarball install only exposes what the package
-actually publishes: compiled `dist/`, the `loader/`, whatever's in `exports`.
-Not the raw `.ts` source. So the app is forced to work against the same
-surface a real consumer sees. Once it's published, swapping the tarball path
-for a version range is a one-line change.
-
-Versioning follows plain semver from `0.1.0`. The bump policy lives in
-[architecture.md](./architecture.md#7-versioning) so I don't have to
-re-decide it every time a contract changes.
-
-### Amendment — the unscoped name was taken before I published
-
-All of that held right up until it didn't. When I came to publish,
-`npm view recipe-ui-kit` returned `1.0.1` instead of a 404. Someone had
-registered the name on 2026-08-28, in the gap between my availability check
-and my publish. `npm publish` would have 403'd, and fairly so. It wasn't my
-name to take.
-
-So it ships as `@srikar_sundram/recipe-ui-kit`, scoped to my account. Other
-unscoped names were still free (`recipe-finder-ui-kit`,
-`recipe-planner-ui-kit`) and I passed on all of them for precisely the reason
-I got burned: an unscoped name is a claim on a shared global namespace, and
-"free today" tells you nothing about tomorrow. Nobody can take a scoped name
-out from under me.
-
-The rename wasn't free. Package names show up in module specifiers, so it
-touched the dependency entry, ten import sites in the app,
-`optimizeDeps.exclude` in `vite.config.ts`, and install instructions all
-through these docs. That's the real cost of the original decision, and it's
-why "reads cleaner in install instructions" was too thin an argument to carry
-the choice by itself. Scope by default unless you're deliberately claiming a
-public name; the cosmetics of `@user/pkg` versus `pkg` aren't worth losing a
-namespace race over.
-
-Nothing architectural moved. The consumption mechanism, the
-tarball-versus-registry story above, every prop and event contract: all
-identical. Only the string naming the package changed. The directory is still
-`recipe-ui-kit/` and the tags are still `<recipe-ui-card>` and friends, since
-Stencil takes tag names from the components rather than the package.
+That held until it didn't. When I came to publish, the name had been taken
+four days earlier, in the gap between my check and my publish. So it ships
+as `@srikar_sundram/recipe-ui-kit` instead. I didn't reach for another free
+unscoped name, because that's exactly how this happened — free today proves
+nothing about tomorrow, and a scoped name can't be taken out from under you.
+The rename touched ten import sites and every install instruction in these
+docs, which is the real cost of the original choice: "reads cleaner" wasn't
+worth a namespace race. Nothing architectural moved — same tags, same
+contracts, just a different string naming the package.
 
 ---
 
 ## ADR-005: State & persistence — no backend, browser storage only
 
-Favorites, user-created recipes and the weekly meal plan all have to persist
-somewhere. The obvious "proper" answer is a backend with a database, and I
-sat with that for a while before deciding against it, because nothing in the
-assignment asks for one. The brief is scoped around component architecture,
-state management, routing and the SvelteKit/Stencil integration. Not
-multi-user accounts, not cross-device sync. Building a backend anyway would
-have meant hosting, a database, probably auth, and none of it would
-demonstrate anything the grading criteria are looking for.
-
-So it all lives in `localStorage`, behind three small runes-based store
-modules. Much simpler to run (clone, install, `npm run dev`, no `.env`, no
-database to seed) and it satisfies every functional requirement as written,
-since none of them say the data has to follow you between devices.
-
-The trade-off is real, and the README says so plainly: this is per-browser
-data. Clear your site storage or open a different browser and it's gone.
-Better to write that down than gloss over it.
+Favorites, user recipes, and the meal plan need to persist, and the
+obvious answer is a backend with a database. I skipped it: nothing in the
+brief asks for multi-user accounts or cross-device sync, and standing up
+hosting and a database wouldn't demonstrate anything the grading criteria
+care about. So everything lives in `localStorage`, behind three small
+runes-based stores — simpler to run (`npm run dev`, no `.env`, nothing to
+seed) and it satisfies every requirement as written. The honest trade-off,
+stated plainly in the README: this is per-browser data, gone if you clear
+site storage.
 
 ---
 
 ## ADR-006: Component boundary between Stencil and Svelte
 
-Once both projects were scaffolded I needed a firm rule for what belongs in
-the library versus the app, or components would creep toward doing too much
-and stop being reusable.
-
-The line: Stencil owns things that are purely presentational and
-framework-agnostic. A recipe card, the rating chips, a day-of-week meal slot,
-the modal shell, a debounced search input. SvelteKit owns anything with app
-logic behind it: routing, fetching, business state. Components take data
-through props and report what happened through `CustomEvent`s. They never
-reach into a Svelte store or call `fetch` themselves. The moment a "reusable"
-component quietly depends on this app's store shape, it isn't a portable web
-component any more, it just looks like one.
-
-This is also more or less what the Integration Requirement describes (props
-in, events out, slots where they make sense), so following it strictly wasn't
-extra work. It's the shape you end up with anyway once you take the
-requirement seriously.
-
-The upkeep cost: there's a full prop/event/slot table per component in
-[architecture.md](./architecture.md#component-contracts), and whenever I
-rename something on the Stencil side I have to remember to update the table
-too, not just the component. That came up for real when I had to dodge native
-DOM name collisions (`recipeTitle` not `title`, `formSubmit` not `submit`,
-`filterChange` not `selectionchange`).
+The rule: Stencil owns anything purely presentational and
+framework-agnostic — a card, a meal slot, a debounced search input.
+SvelteKit owns anything with real logic behind it — routing, fetching,
+state. A component takes data through props and reports back through
+`CustomEvent`s; it never reaches into a store or calls `fetch` itself. The
+moment a "reusable" component depends on this app's store shape, it stops
+being a portable web component. This is also just what the Integration
+Requirement describes, so it wasn't extra work — it's the shape you land
+on anyway once you take it seriously. The upkeep cost is a
+[contract table](./architecture.md#component-contracts) I have to update by
+hand whenever a prop or event is renamed, which happened at least once to
+dodge native DOM collisions (`recipeTitle`, not `title`).
 
 ---
 
 ## ADR-007: Theming through inherited CSS custom properties
 
-Once both sides had styling I had to decide how a shadow-DOM component
-library gets themed by its host. Shadow DOM blocks outside stylesheets by
-design, so the obvious routes were: a `theme` prop on every component with an
-object drilled through the tree, a stylesheet consumers import and override,
-or `::part()` so consumers can style internals directly.
-
-I used none of them. Every colour, radius, shadow and font is a `--ruik-*`
-custom property, defined once on `:root` in the app's `app.css`. Each Stencil
-component reads it as `var(--ruik-color-primary, <fallback>)` instead of
-setting its own value on `:host`.
-
-That works because custom properties are one of the few things that inherit
-straight through shadow boundaries. So the host themes the entire library
-from one place with no API surface at all: no theme prop, no stylesheet to
-import, no `::part()` contract to keep stable. The per-component fallback
-earns its keep too, since it keeps each component looking deliberate in its
-own dev preview where the app's `:root` block doesn't exist.
-
-Dark mode is where this paid off. It turned out to be a second block of the
-same variable names under `@media (prefers-color-scheme: dark)` and zero
-changes in any component, because components only ever read tokens, never
-define them.
-
-The catch is that token names are now an implicit contract. Rename
-`--ruik-color-primary` and seven components quietly fall back to their
-defaults instead of failing loudly. I took that trade to avoid having a
-theming API to version.
+Shadow DOM blocks outside stylesheets, so a component library normally
+needs a theme prop, an importable stylesheet, or `::part()` to be themed by
+its host. I used none of those. Every colour, radius, and font is a
+`--ruik-*` custom property set once on `:root` in the app, and each
+component reads it as `var(--ruik-color-primary, <fallback>)`. Custom
+properties are one of the few things that cross shadow boundaries, so this
+themes all seven components from one place with no API surface to version
+— and dark mode turned out to be a second `@media` block with zero
+component changes, since nothing but tokens ever gets defined locally. The
+cost: the token names are now an implicit contract, and renaming one means
+every component silently falls back rather than failing loudly.
 
 ---
 
 ## ADR-008: `recipe-ui-kit` excluded from Vite's dependency pre-bundler
 
-**Superseded — the app no longer imports the lazy loader at all, so this
-workaround no longer applies. Kept for the history; see
-[ADR-013](#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly)
-for what replaced it and why.**
+**Superseded** — the app no longer imports the lazy loader, so this
+workaround no longer applies. See
+[ADR-013](#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly).
 
-Less a design choice than a bug I had to work around, but worth writing down
-because it'll bite again if the fix ever gets removed.
-
-After rebuilding and repacking the library a few times, the dev server
-started 404ing on files like `recipe-ui-card_6.entry.js`, with Vite's own
-error pointing at the fix: "Try adding it to `optimizeDeps.exclude`". What's
-going on is that `@srikar_sundram/recipe-ui-kit/loader` does its own runtime
-`import()` of per-component lazy chunks, which is the whole point of
-Stencil's lazy-loading model. Vite's dependency scanner tries to follow those
-dynamic imports and pre-bundle them, caching what it finds in
-`node_modules/.vite/deps` keyed by filename. Stencil content-hashes those
-filenames, so every rebuild changes them, but a tarball reinstall doesn't
-bump a version number, so Vite has no idea anything changed and keeps serving
-its stale cache.
-
-The fix is one line in `vite.config.ts`:
-`optimizeDeps.exclude: ['@srikar_sundram/recipe-ui-kit', '@srikar_sundram/recipe-ui-kit/loader']`.
-That's safe specifically because the package is only ever imported lazily,
-inside `onMount`, in the browser. It never needed to be in Vite's eager
-module graph.
-
-In practice: if you rebuild and repack while the dev server is running you
-still have to restart it or clear `node_modules/.vite/`. Excluding it stopped
-the 404s, it didn't make Vite psychic about a tarball changing underneath it.
+Kept for the record: rebuilding and repacking the library a few times made
+the dev server start 404ing on lazy chunk files, because Vite's dependency
+scanner pre-bundles the loader's internal dynamic imports and caches them
+by filename. Stencil content-hashes those filenames on every rebuild, but a
+tarball reinstall doesn't bump a version, so Vite kept serving a stale
+cache. `optimizeDeps.exclude` fixed the symptom without fixing the cause —
+which is exactly why it eventually needed a real fix instead.
 
 ---
 
 ## ADR-009: Discovery — search intersects filters rather than overriding them
 
-The first version of the discovery page treated the search box as a mode
-switch. Text in the box meant run `search.php` and ignore the chips;
-otherwise run `filter.php` for whatever was selected. I built it that way
-because TheMealDB's two endpoint families really are separate: different
-parameters, different response shapes, and combining them means doing the
-work client-side.
+The first version treated search as a mode switch: type something and the
+filter chips were ignored. That's a defensible reading of "search and
+filter," but it's not what anyone actually expects from a search box
+sitting above filter chips, and it showed the moment I used the app instead
+of building it — pick a cuisine, type a name to narrow it down, and the
+cuisine filter silently vanishes.
 
-It was wrong, and it became obvious the moment I used the app as a user
-rather than its author. You pick "Japanese", scroll a bit, type "chicken" to
-narrow things down, and your cuisine filter silently disappears with nothing
-in the UI to tell you. "Search *or* filter" is a defensible reading of the
-brief. "Search *within* my filters" is what anyone actually expects from a
-search box sitting above a row of chips.
-
-So search stopped being special and became one more constraint. The rules all
-live in `app/src/lib/search/compose.ts`:
-
-- within an axis, selections union (Chicken + Dessert means either, since a
-  recipe that's both basically never exists);
-- across axes, results intersect (Chicken + Japanese means both);
-- a search term is just another axis, so it intersects too.
-
-Two things made this worth doing properly rather than hacking. The result
-sets are small, a few hundred records at worst, so a client-side intersection
-costs nothing measurable. More importantly, I pulled the whole thing out into
-a pure module with no fetching in it. The route decides which calls to make;
-`compose.ts` decides what the combined answer is. That's what made 21 tests
-over the set algebra possible with no browser and no network, and the edge
-cases turned out to be exactly where bugs would have hidden. An empty search
-result (`[]`) means something completely different from no search at all
-(`null`), and an active axis that matched nothing has to empty the result
-while an *omitted* axis means "unconstrained".
-
-One wrinkle needed explicit handling. `filter.php` returns bare summaries
-with no category; `search.php` returns full detail. Intersecting naively
-would have stripped the category badge off every card the moment a filter was
-involved, so `mergePreferDetail()` upgrades a summary to the detailed record
-when both turn up for the same id, and never downgrades.
+So search became one more constraint: selections union within an axis,
+intersect across axes, and a search term intersects too rather than
+overriding anything. That logic lives in a pure module,
+`app/src/lib/search/compose.ts`, with no fetching in it — which is what
+made the interesting edge cases testable without a browser: an empty
+search result means something different from no search at all, and
+`filter.php` returning bare summaries while `search.php` returns full
+detail meant intersecting naively would have stripped the category badge
+off every card. `mergePreferDetail()` exists for exactly that.
 
 ---
 
 ## ADR-010: Curated ingredient filter options
 
-Adding a main-ingredient filter meant deciding where the options come from.
-`list.php?i=list` returns TheMealDB's full ingredient list and my first
-instinct was to use it, the same way the category and cuisine rows use
-`list.php?c=list` and `list.php?a=list`.
-
-That list has around 600 entries. As a chip row it would run several screens
-tall, dwarfing the recipes it's meant to filter, and most entries match one
-or two recipes, so nearly all of it would be dead weight. Categories (14) and
-areas (~29) work fine as exhaustive rows. Ingredients don't.
-
-I considered a searchable combobox and a "show more" disclosure. Both are
-more component than this needs, and the combobox especially would have meant
-a new Stencil component with real keyboard-interaction complexity. That's a
-lot of surface area for one filter axis on an assignment about integration.
-
-So `app/src/lib/search/ingredients.ts` holds a hand-picked list of 12 common
-staples. The values have to match TheMealDB's spelling exactly because they
-go straight into `filter.php?i=`, which is the fragile part and the reason
-the constant carries a comment saying so. If this ever needs to be
-exhaustive, the answer is a searchable input, not 600 chips.
+`list.php?i=list` returns roughly 600 ingredients — unusable as a chip row,
+since most match one or two recipes and the row would dwarf the page.
+Categories and areas are small enough to show exhaustively; ingredients
+aren't. A searchable combobox would have meant a new Stencil component with
+real keyboard complexity for one filter axis, so instead
+`app/src/lib/search/ingredients.ts` holds a hand-picked shortlist, each
+value checked against the live API to confirm it's spelled the way
+`filter.php?i=` expects and actually returns recipes.
 
 ---
 
 ## ADR-011: `adapter-static`, not `adapter-vercel`
 
-I'd settled on Vercel and installed `@sveltejs/adapter-vercel`. Then
-`npm run build` died on Windows with `EPERM: symlink`, because the adapter
-creates a symlink inside `.vercel/output/functions` and Windows won't allow
-that without Developer Mode or an elevated shell.
+`adapter-vercel` failed to build on Windows with `EPERM: symlink` — it
+writes a symlink Windows won't allow without Developer Mode. Rather than
+shrug and leave it to CI, I checked what this app actually needs from an
+adapter: nothing. No `load` functions, no `+page.server.ts`, no hooks —
+every byte of data comes from TheMealDB or `localStorage`
+([ADR-005](#adr-005-state--persistence--no-backend-browser-storage-only)).
+So `adapter-static` isn't a workaround, it's an accurate description —
+builds on any OS, deploys to Vercel with no configuration.
 
-Vercel's own Linux builders would have been fine, so I could have shrugged
-and left it to CI. But a project whose production build won't run locally for
-whoever's grading it isn't acceptable, so I went and looked at what this app
-actually needs from an adapter.
-
-Nothing, as it turns out. No `+page.server.ts`, no `+layout.server.ts`, no
-`load` functions anywhere, no `hooks.server.ts`. Every byte of data comes
-from TheMealDB (fetched in the browser) or `localStorage`. There's no
-serverless function to deploy because there's no server-side code to put in
-one, which follows directly from
-[ADR-005](#adr-005-state--persistence--no-backend-browser-storage-only).
-
-So `@sveltejs/adapter-static` isn't a workaround here, it's just an accurate
-description of what this is. It builds on any OS, deploys to Vercel with no
-extra configuration since Vercel serves static output natively, and would
-work equally well on Netlify, Cloudflare Pages or GitHub Pages if the target
-changes.
-
-Three details it forced:
-
-- `/recipes/[id]` and its `edit` child can't be prerendered, since the ids
-  come from TheMealDB or the user's own storage and aren't knowable at build
-  time. Both have a `+page.ts` with `prerender = false` and get served by the
-  static adapter's fallback page for client-side rendering. Everything else
-  prerenders via `prerender = true` in `+layout.ts`.
-- The fallback is `200.html` rather than `index.html`, because `/` already
-  prerenders to `index.html` and the adapter warned it was about to overwrite
-  it. `vercel.json` rewrites unmatched paths to `/200.html`. Filesystem
-  matches win first on Vercel, so prerendered routes still serve directly.
-- Vercel's framework auto-detection expects a `svelte.config.js` at the
-  project root to recognise a SvelteKit project, and this project doesn't
-  have one (the adapter is wired up inside `vite.config.ts` instead). Without
-  that file Vercel fell back to treating the project as generic Vite, whose
-  default output folder is `dist`, and the first deploy failed with
-  "No Output Directory named dist found" even though the build had already
-  written everything to `build/` correctly. `vercel.json` now pins
-  `"outputDirectory": "build"` explicitly rather than relying on Vercel's
-  guess.
+Two things that forced: `/recipes/[id]` and its `edit` child can't be
+prerendered, since the id isn't known at build time, so they're served by
+the adapter's fallback page instead; and the first real deploy still failed
+with "No Output Directory named dist found," because this project has no
+`svelte.config.js` (the adapter lives in `vite.config.ts` instead), so
+Vercel's framework detection fell back to generic Vite and guessed wrong.
+`vercel.json` now pins `"outputDirectory": "build"` explicitly.
 
 ---
 
 ## ADR-012: Where validation lives, and why there are two layers
 
-This follows from
-[ADR-006](#adr-006-component-boundary-between-stencil-and-svelte) but it
-earns its own entry, because "the form validates itself" is the obvious
-design and I deliberately didn't do it.
-
-`<recipe-ui-form>` has no business validation in it. Title and Instructions
-are marked `required` for baseline browser UX and that's the extent of it.
-The actual rules, what makes a recipe valid, live in
-`app/src/lib/validation/recipe.ts`, and the app hands failures back to the
-component through its `errors` prop.
-
-The reason is reusability. A 120-character title limit, or the rule that at
-least one ingredient must be named, are facts about *this app's data model*,
-not about recipe forms in general. Bake them into the component and the next
-consumer inherits this app's business rules whether they want them or not,
-with no way to override. Props in, events out, host owns the rules. Same
-boundary as everywhere else.
-
-What I didn't expect is how useful the resulting two layers turned out to be,
-rather than redundant. The browser's `required` catches a genuinely empty
-field instantly, no round trip and no JavaScript. But `required` is perfectly
-happy with `"   "`, because three spaces is a non-empty value as far as HTML
-cares. So the app layer is what catches whitespace-only input, the character
-limit, and an ingredient list where every row has a measure but no name. The
-seam between the two is where the interesting test cases live, and
-[testing.md](./testing.md) calls it out explicitly.
+`<recipe-ui-form>` has no business rules — Title and Instructions are
+`required` for baseline UX, nothing more. The actual rules live in
+`app/src/lib/validation/recipe.ts`, because a 120-character title limit is
+a fact about this app's data model, not about recipe forms in general;
+baking it into the component would mean every future consumer inherits a
+rule they never asked for. What I didn't expect: the two layers aren't
+redundant. The browser's `required` catches an empty field instantly with
+no JavaScript, but it's perfectly happy with `"   "` — three spaces is a
+non-empty value as far as HTML is concerned. The app layer is what catches
+whitespace-only input, the character limit, and an ingredient row with a
+measure but no name.
 
 ---
 
 ## ADR-013: Drop the lazy loader, import dist-custom-elements modules directly
 
-This is the most serious bug the app shipped with, and it went undetected
-through every deploy up to this point, because everything I used to verify
-the app was `curl` against the server-rendered HTML shell. That checks the
-page loaded; it says nothing about whether the JavaScript inside it actually
-works once a real browser runs it. It took the app being genuinely unusable
-in someone's hands to surface this.
+The most serious bug the app shipped with, and it survived every deploy
+because every check I'd run — `svelte-check`, ESLint, Vitest, `curl`
+against the deployed URL — only ever confirmed a page loaded, never that
+its JavaScript worked. Discovery, browse, and the meal plan all appeared
+broken while adding a recipe looked fine, and the cause was one thing:
+every `recipe-ui-kit` custom element was silently failing to render.
 
-The symptom: discovery, browse, and the meal plan all appeared broken, while
-adding a recipe looked fine. The cause turned out to be one thing, not
-several: **every single `recipe-ui-kit` custom element silently failed to
-render its implementation**, because the file it needed was never present in
-the deployed output at all.
+`+layout.svelte` registered components through the library's lazy loader,
+which bundles all seven into one shared chunk and fetches it via
+`import(\`./${bundleId}.entry.js\`)` — a path built from a runtime variable.
+Vite's production bundler can't statically analyze that, so it never copied
+the file into the build at all. Every component 404'd trying to load its
+own implementation; the surrounding Svelte markup kept rendering fine,
+which is why the failure looked selective instead of total.
 
-`recipe-finder-app/src/routes/+layout.svelte` registered components through
-`@srikar_sundram/recipe-ui-kit/loader`, calling `defineCustomElements()` once
-at startup. That is the standard way to consume a Stencil package, and it
-works fine in Stencil's own dev server and in plain script-tag usage. What it
-does internally is bundle all seven components into one shared chunk
-(`recipe-ui-card_7.entry.js`) and fetch it lazily, at runtime, via
-`import(\`./${bundleId}.entry.js\`)` — a module specifier built from a
-runtime variable, not a literal string.
-
-Vite's production bundler (Rollup) cannot statically analyze a
-template-interpolated import. It cannot know what `bundleId` will be at
-build time, so it has no way to know that file needs to be included in the
-build at all, and it silently leaves the `import()` call as-is rather than
-erroring. The result: `recipe-ui-card_7.entry.js` genuinely does not exist
-anywhere in `build/` after `npm run build`. In the browser, every component's
-lazy-load request 404s, Stencil logs the failure to the console and gives up,
-and the custom element just sits there empty. The surrounding Svelte-rendered
-markup (nav, headings, the "Your Recipes" heading via `{#each}`) still shows,
-because none of that depends on Stencil — which is exactly why the bug read
-as "some things work, some don't" rather than "everything is broken".
-
-This bug is not specific to Vercel. It affects `npm run build` +
-`npm run preview` on any machine, and would have affected `npm run dev` too
-once Vite's dependency pre-bundler cache went stale (see the superseded
-[ADR-008](#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)).
-Chasing it down on the deployed Vercel URL was what finally forced the issue,
-because that was the first time anyone actually clicked through the running
-app rather than checking that a page returned 200.
-
-The fix: `recipe-ui-kit` also ships a `dist-custom-elements` build (already
-configured in `stencil.config.ts`, so no library change or republish was
-needed), where each component is its own plain ES module —
-`recipe-ui-kit/recipe-ui-card`, `recipe-ui-kit/recipe-ui-form`, and so on.
-Each one calls `customElements.define()` as a straightforward side effect of
-being imported, with **no runtime-computed path anywhere in it** — it's a
-static `import` from a sibling file, the same as any other module. `+layout.svelte`
-now does:
-
-```ts
-onMount(async () => {
-	await Promise.all([
-		import('@srikar_sundram/recipe-ui-kit/recipe-ui-card'),
-		import('@srikar_sundram/recipe-ui-kit/recipe-ui-search-bar'),
-		// ...one per component
-	]);
-});
-```
-
-Each of those is a literal string, so Rollup can see exactly what it needs,
-code-split it into a real, correctly-hashed chunk under
-`_app/immutable/chunks/`, and reference it with a normal relative import that
-resolves to wherever the chunk actually lands. Verified directly against the
-build output: all seven components now exist as real chunks, every
-`customElements.define` call is present, and there is not one remaining
-`.entry.js` reference anywhere in `build/`.
-
-The cost is that "lazy" now means something more modest: all seven
-components load together on first paint instead of per-route, since they are
-requested up front in the root layout rather than as each route needs them.
-Given the whole library is on the order of 30KB, that is not a real trade —
-it is the same code Stencil's own lazy model would have loaded anyway, just
-without the broken indirection in between.
-
-The `optimizeDeps.exclude` workaround from
-[ADR-008](#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)
-is removed along with it, since it existed specifically to paper over the
-lazy loader's dev-mode staleness — a problem that cannot occur once nothing
-imports the lazy loader at all.
-
-The honest lesson here is about verification, not just this one bug. Every
-check I ran up to this point — `svelte-check`, ESLint, Vitest, and `curl`
-against both the local server and the deployed URL — passed the entire time
-this was broken, because none of them render the app and click through it.
-[testing.md](./testing.md) already listed the absence of end-to-end route
-tests as a known gap; this is the concrete failure that gap allows through,
-not a hypothetical one.
+The fix: import each component's `dist-custom-elements` module directly
+(`recipe-ui-kit/recipe-ui-card`, and so on) — already part of the published
+package, no republish needed. Each one calls `customElements.define()` as
+a plain side effect with no computed path in it, so Rollup can bundle it
+like any normal module. Verified against the actual build output this
+time, not the HTML shell: all seven exist as real chunks, and there's no
+`.entry.js` reference left anywhere. The [ADR-008](#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)
+workaround goes away with it, since it existed only to paper over this same
+loader.
 
 ---
 
 ## ADR-014: The app is vegetarian-only
 
-This wasn't in the original brief. It came directly from feedback: no
-non-vegetarian item should ever show up anywhere in the app. Rather than
-bolt on a toggle, I made it an unconditional, app-wide rule.
+Not in the original brief — added on request, and made unconditional
+rather than a toggle. TheMealDB has no per-recipe "is this vegetarian"
+flag; the only reliable signal is its own category field, which includes
+exactly "Vegetarian" and "Vegan." I considered scanning ingredient names
+for meat/fish terms instead, to catch recipes that are meat-free but filed
+under something like "Dessert" — and rejected it, because keyword matching
+against ingredient names is the kind of thing that looks fine in five test
+cases and quietly misfires in production. Category membership is
+unambiguous, so `isVegetarianCategory()` in
+`app/src/lib/validation/diet.ts` is the one definition, checked
+independently everywhere rather than filtered once centrally:
 
-The first problem is definitional. TheMealDB has no per-recipe boolean for
-"is this vegetarian" — the closest reliable signal is its own category
-field, which includes exactly two diet categories: "Vegetarian" and
-"Vegan". I considered scanning ingredient names for meat/fish/poultry terms
-instead, to catch recipes that are genuinely meat-free but filed under some
-other category like "Dessert" or "Side". I decided against it: keyword
-matching against ingredient names is exactly the kind of thing that looks
-fine in the five test cases you try and then quietly misfires in production
-— "coconut milk" isn't dairy, "fish sauce" isn't always spelled with "fish"
-in it, and a maintained deny-list needs to keep being maintained. Category
-membership is unambiguous and it's how TheMealDB itself already classifies
-these recipes, so I used that as the one definition of "vegetarian" this
-app follows everywhere: `isVegetarianCategory()` in
-`app/src/lib/validation/diet.ts`.
+- **Discovery** pushes a `filterByCategory` axis for Vegetarian+Vegan on
+  every query, unconditionally — the same intersection mechanism as any
+  other filter ([ADR-009](#adr-009-discovery--search-intersects-filters-rather-than-overriding-them)),
+  just with no chip and no way to turn it off. The old generic category row
+  is gone, and the curated ingredient list traded Chicken/Beef/Salmon for
+  Paneer/Tofu/Chickpeas.
+- **Your own recipes** must have Category set to Vegetarian or Vegan to
+  save. This didn't fit `RecipeFormErrors` — a type the library declares,
+  with no slot for an app-specific policy — so it's a standalone banner
+  the route owns, not a fourth field error.
+- **The detail page** is reachable by a direct URL to any TheMealDB id,
+  including ones discovery would never surface, so it independently checks
+  the loaded recipe and disables Favorite / Add to meal plan if it fails.
+- **Favorites and the meal plan** resolve a full recipe on every read, so
+  hiding a stale non-vegetarian entry from before this rule existed needed
+  no migration — just the same predicate applied before rendering.
 
-**Discovery.** The old approach would have been a "Vegetarian" chip in the
-existing category filter row, letting the user opt in. That's not what was
-asked — the ask is that non-veg never appears, not that it's one filter
-away. So `+page.svelte`'s `runQuery()` now pushes a `filterByCategory`
-axis for `['Vegetarian', 'Vegan']` on every single query, unconditionally,
-using the exact same intersection mechanism from
-[ADR-009](#adr-009-discovery--search-intersects-filters-rather-than-overriding-them)
-that a user-selected filter would use — it just isn't gated behind any
-selection, and there's no chip for it because it isn't a choice. The old
-generic "Category" filter row (populated from `listCategories()`, letting
-someone filter by Chicken or Beef) is gone entirely, since offering a chip
-that always intersects to zero results would be a worse experience than not
-offering it. The curated ingredient list from
-[ADR-010](#adr-010-curated-ingredient-filter-options) also dropped its three
-meat/fish entries (Chicken, Beef, Salmon) for three vegetarian ones I
-confirmed both exist as TheMealDB ingredient names and actually return
-recipes: Paneer, Tofu, Chickpeas.
-
-**User-created recipes.** `<recipe-ui-form>`'s category field is free text,
-so an own-recipe needs the same rule enforced at submission: its category
-must be "Vegetarian" or "Vegan" or the recipe is rejected. This doesn't fit
-`RecipeFormErrors` — that type, declared by the library, only has slots for
-title/ingredients/instructions, and I wasn't going to bump the library's
-version and touch its component markup for one app-specific policy that has
-nothing to do with what a "recipe form" component should know about
-(that boundary is the whole point of
-[ADR-006](#adr-006-component-boundary-between-stencil-and-svelte)). So the
-check lives in the route, using the same `isVegetarianCategory()`, and
-shows as a standalone banner alongside the form rather than a fourth
-field-level error. Both `/recipes/new` and the edit route enforce it the
-same way.
-
-**Reachable by direct URL.** `/recipes/<id>` accepts any TheMealDB id
-directly, including ones discovery would never surface — someone can type
-`/recipes/52940` (a beef stew) whether or not it ever appeared in a search.
-So the detail page independently checks the loaded recipe's category and
-disables Favorite / Add to meal plan for anything that fails, with a
-one-line explanation instead of the buttons. This is the same rule
-enforced a third time, at the one remaining entry point that bypasses both
-of the others.
-
-**Data saved before this rule existed.** Favorites and meal-plan
-assignments store only `{id, source}` and resolve the full recipe on
-every read, which meant hiding a stale non-vegetarian entry needed no
-migration — `favorites/+page.svelte` and `meal-plan/+page.svelte` both
-filter their resolved lists through the same predicate before rendering. A
-day that was planned with a non-vegetarian recipe before this shipped
-now just renders as empty rather than showing it; the underlying
-`localStorage` reference isn't deleted, only hidden, since these routes
-display favorites and the plan, they don't own clearing them out.
-
-The result: one predicate, checked at four independent points (discovery,
-recipe creation/edit, the detail page, and stale-data display), rather than
-one central filter that something could bypass by reaching a route a
-different way.
+One predicate, checked at four points that don't trust each other, rather
+than one filter something could route around.
