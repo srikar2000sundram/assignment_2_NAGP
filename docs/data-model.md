@@ -4,8 +4,8 @@ This is what actually gets stored, in what shape, and what `localStorage`
 key it lives under — the three store modules this describes are the ones
 covered at a higher level in [architecture.md](./architecture.md#4-state-ownership).
 If you're wondering why any of this lives in `localStorage` at all instead
-of a real database, that reasoning is in
-[decisions.md — ADR-005](./decisions.md#adr-005-state--persistence--no-backend-browser-storage-only).
+of a real database, that's in
+[assumptions.md](./assumptions.md#no-backend).
 
 ## Recipe
 

@@ -104,7 +104,7 @@ invisible because that project contained no test files.
 | `lib/validation/recipe.ts` | 23 | Every rule, at its boundaries |
 | `lib/search/compose.ts` | 21 | The whole search∩filter algebra |
 | `lib/stores/storage.ts` | 11 | SSR, corrupt data, hostile storage |
-| `lib/validation/diet.ts` | 6 | The single vegetarian/vegan definition ([ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only)) |
+| `lib/validation/diet.ts` | 6 | The single vegetarian/vegan definition, checked everywhere a recipe is shown |
 
 ### `client` project — 33 tests, real Chromium
 

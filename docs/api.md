@@ -5,8 +5,8 @@ Everything the app actually calls lives in
 notes I kept while wiring it up — I checked every endpoint below against
 https://www.themealdb.com/api.php myself rather than assuming, and a
 couple of the quirks further down aren't in TheMealDB's own docs at all,
-just things I ran into. Why TheMealDB specifically:
-[decisions.md — ADR-002](./decisions.md#adr-002-recipe-data-source--themealdb).
+just things I ran into. Why TheMealDB specifically, see
+[assumptions.md](./assumptions.md#recipe-data).
 
 **Base URL:** `https://www.themealdb.com/api/json/v1/1/`
 The trailing `1` is the shared free test key baked right into the path —
@@ -20,11 +20,11 @@ I built out in advance for a need that doesn't exist yet.
 | Purpose | Endpoint | Used from |
 |---|---|---|
 | Search by name | `search.php?s=<query>` | `/` search bar (`recipe-ui-search-bar` → `searchChange`) |
-| Filter by category | `filter.php?c=<category>` | `/` filter chips (category row) |
-| Filter by area (cuisine) | `filter.php?a=<area>` | `/` filter chips (area row) |
-| Filter by main ingredient | `filter.php?i=<ingredient>` | `/` filter chips (main-ingredient row, curated options — [ADR-010](./decisions.md#adr-010-curated-ingredient-filter-options)) |
-| List all categories | `list.php?c=list` | populates the category filter chip options |
-| List all areas | `list.php?a=list` | populates the area filter chip options |
+| Filter by category | `filter.php?c=<category>` | the always-on vegetarian/vegan restriction, not a user-facing chip |
+| Filter by area (cuisine) | `filter.php?a=<area>` | `/` filter chips (cuisine row) |
+| Filter by main ingredient | `filter.php?i=<ingredient>` | `/` filter chips (main-ingredient row, curated shortlist) |
+| List all categories | `list.php?c=list` | client exposes `listCategories`, not currently used by any route |
+| List all areas | `list.php?a=list` | populates the cuisine filter chip options |
 | Full detail lookup | `lookup.php?i=<id>` | `/recipes/[id]` |
 | Random meal | `random.php` | client exposes `randomRecipe`, not currently used by any route |
 
@@ -34,10 +34,10 @@ it's the obvious next thing if a "surprise me" button ever gets added. It
 is tested regardless, so it can't rot silently.
 
 Note that the ingredient row does **not** use `list.php?i=list` to populate
-its options, even though the category and cuisine rows use their
-equivalents: that endpoint returns roughly 600 ingredients, which is
-unusable as a chip row. The options are a curated constant instead —
-[ADR-010](./decisions.md#adr-010-curated-ingredient-filter-options).
+its options, even though the cuisine row uses its equivalent: that endpoint
+returns roughly 600 ingredients, which is unusable as a chip row. The
+options are a curated constant instead — see
+[assumptions.md](./assumptions.md#recipe-data).
 
 Didn't bother with: `search.php?f=<letter>` (redundant with name search for
 what this app needs), `randomselection.php` / `latest.php` (premium-only),
@@ -74,20 +74,19 @@ Two things I only found by actually calling the API, not by reading docs:
   whim while looking for a way to power the discovery page's default
   "browse everything" view, and it actually comes back with a real set of
   roughly 25 meals across categories, which is what "Browse" originally
-  showed by default before anything else applied. That's since been
-  superseded by
-  [ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only): the default
-  view is now `filter.php?c=Vegetarian` unioned with `filter.php?c=Vegan`,
-  since browse has to obey the same vegetarian-only restriction as
-  everything else, and this empty-search trick has no way to express that.
+  showed by default before anything else applied. That's since changed:
+  the default view is now `filter.php?c=Vegetarian` unioned with
+  `filter.php?c=Vegan`, since browse has to obey the same vegetarian-only
+  restriction as everything else, and this empty-search trick has no way
+  to express that.
 
 ## How many requests one query makes
 
-Discovery composes several axes ([ADR-009](./decisions.md#adr-009-discovery--search-intersects-filters-rather-than-overriding-them)),
-and each *selection* is its own request, since the free tier has no
-multi-value filter endpoint. So a query with a search term plus two
-categories plus one cuisine is 1 + 2 + 1 = **four** parallel requests,
-intersected client-side.
+Discovery composes several axes — search and filters intersect rather than
+one overriding the other — and each *selection* is its own request, since
+the free tier has no multi-value filter endpoint. So a query with a search
+term plus the vegetarian/vegan restriction plus one cuisine is
+1 + 2 + 1 = **four** parallel requests, intersected client-side.
 
 That is fine at this scale — every axis fires in parallel via
 `Promise.all`, and the result sets are a few hundred records at most — but

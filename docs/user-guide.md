@@ -17,8 +17,7 @@ already has around 25 recipes loaded before you type anything.
 Every result on this page — browse, search, or filtered — is vegetarian or
 vegan. That's not a filter you can turn off; it's applied on every query
 regardless of anything else you select, so a search for a meat dish
-correctly returns nothing rather than showing it anyway
-([ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only)).
+correctly returns nothing rather than showing it anyway.
 
 ### Browse
 
@@ -39,7 +38,7 @@ Two independent filter rows, each multi-select:
 | Row | Values | Source |
 |---|---|---|
 | **Cuisine** | Italian, Thai, Japanese, … | fetched live from TheMealDB |
-| **Main ingredient** | 12 vegetarian staples | a curated shortlist ([ADR-010](./decisions.md#adr-010-curated-ingredient-filter-options)) |
+| **Main ingredient** | 12 vegetarian staples | a curated shortlist ([assumptions.md](./assumptions.md#recipe-data)) |
 
 Click chips to toggle them on and off. A tick appears on active chips.
 
@@ -133,10 +132,9 @@ at once** rather than one at a time. Your typing is preserved — the form
 does not reset when validation fails.
 
 The Category check is why: this app never shows a non-vegetarian recipe
-anywhere, including ones you add yourself
-([ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only)). It shows as
-a banner above the form rather than beneath the Category field, since it's
-an app-wide rule rather than a per-field one.
+anywhere, including ones you add yourself. It shows as a banner above the
+form rather than beneath the Category field, since it's an app-wide rule
+rather than a per-field one.
 
 Amount-without-a-name rows are dropped silently on save; a name with no
 amount is kept.
@@ -224,8 +222,8 @@ your **browser's** `localStorage`. It survives refreshes and restarts, but:
 - a different browser, or a private window, starts empty;
 - clearing site data wipes it.
 
-That is a deliberate scope decision, not an oversight
-([ADR-005](./decisions.md#adr-005-state--persistence--no-backend-browser-storage-only)).
+That is a deliberate scope decision, not an oversight — see
+[assumptions.md](./assumptions.md#no-backend).
 
 ## Other things you may notice
 

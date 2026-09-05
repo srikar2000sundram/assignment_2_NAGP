@@ -6,8 +6,7 @@ A framework-agnostic StencilJS component library built for the **Recipe
 Finder & Meal Planner** app. Compiles to standards-based Web Components,
 published to npm and consumed by the [`recipe-finder-app`](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/recipe-finder-app)
 SvelteKit project — see [`../docs`](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/docs) for the full architecture
-(`architecture.md`) and design decisions (`decisions.md`) this library was
-built against.
+(`architecture.md`) this library was built against.
 
 ## Components
 
@@ -127,9 +126,7 @@ npm publish                       # prepublishOnly rebuilds dist/ first
 
 Add a section to [`CHANGELOG.md`](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/recipe-ui-kit/CHANGELOG.md) before bumping. The bump
 policy — a component's public API is its props, events and slots — is in
-[`../docs/architecture.md`](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/docs/architecture.md#7-versioning); the
-package-naming rationale is
-[ADR-004](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/docs/decisions.md#adr-004-published-package-name).
+[`../docs/architecture.md`](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/docs/architecture.md#7-versioning).
 Step-by-step publish instructions:
 [`../docs/RUNBOOK.md`](https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/docs/RUNBOOK.md).
 

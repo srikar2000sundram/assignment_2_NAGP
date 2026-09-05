@@ -25,8 +25,8 @@ sed -i 's/<YOUR-GITHUB-USERNAME>/your-actual-username/g' package.json
 
 The package publishes as **`@srikar_sundram/recipe-ui-kit`**, scoped to the
 npm account. The unscoped `recipe-ui-kit` was claimed by someone else on
-2026-08-28, before this was published — see the amendment on
-[ADR-004](./decisions.md#adr-004-published-package-name).
+2026-08-28, before this was published, which is why it's scoped rather
+than unscoped.
 
 ```sh
 cd recipe-ui-kit
@@ -53,8 +53,7 @@ npm run build                        # confirm it still builds
 
 `package.json` should now read `"@srikar_sundram/recipe-ui-kit": "^0.2.0"`
 instead of the `file:` tarball path. Nothing else changes — the app was
-written against the published surface all along, which is the point of
-[ADR-004](./decisions.md#adr-004-published-package-name).
+written against the published surface all along.
 
 Record the package URL —
 `https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit` — in the
@@ -64,14 +63,12 @@ Record the package URL —
 
 ## Step 2 — push to GitHub
 
-**What actually happened here differs from the original plan.** This step
-was originally written for two repositories, per ADR-001's initial
-decision. By the time of pushing, that had been superseded — see the
-amendment on
-[ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository) —
-because the deliverables ask for a single "Link to github repository". So
-`recipe-ui-kit/` was folded into this tree as a plain subdirectory (its
-separate git history was not preserved) and everything went to one repo:
+One repository, not two — the app and the library each have their own
+`package.json`, but the deliverables ask for a single "Link to github
+repository", so `recipe-ui-kit/` is a plain subdirectory here (its
+separate git history wasn't preserved). See
+[assumptions.md](./assumptions.md#tooling) for why. Everything goes to
+one repo:
 
 ```sh
 cd recipe-ui-kit && rm -rf .git       # drop its independent history
@@ -93,10 +90,10 @@ Record the URL in the **Links** table in [`../README.md`](../README.md).
 
 ## Step 3 — deploy to Vercel
 
-The app builds to a static site (no server-side code anywhere — see
-[ADR-011](./decisions.md#adr-011-adapter-static-not-adapter-vercel)), and
-`vercel.json` already contains the SPA rewrite that the client-rendered
-`/recipes/<id>` routes need.
+The app builds to a static site — no server-side code anywhere, see
+[assumptions.md](./assumptions.md#deployment) — and `vercel.json` already
+contains the SPA rewrite that the client-rendered `/recipes/<id>` routes
+need.
 
 Confirm the build locally first:
 
@@ -132,10 +129,8 @@ Record the resulting URL in the **Links** table in
 > is configured inside `vite.config.ts` instead), so Vercel's framework
 > detection fell back to generic Vite and guessed `dist` instead of the
 > `build/` folder `adapter-static` actually writes to. The fix, already in
-> `vercel.json`, is `"outputDirectory": "build"` — see
-> [ADR-011](./decisions.md#adr-011-adapter-static-not-adapter-vercel) for
-> the full explanation. If you ever remove or regenerate `vercel.json`,
-> keep that key.
+> `vercel.json`, is `"outputDirectory": "build"`. If you ever remove or
+> regenerate `vercel.json`, keep that key.
 
 ### After deploying, check
 

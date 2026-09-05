@@ -4,8 +4,8 @@ The reference for how this system is put together: what the pieces are,
 what talks to what, the exact contract at the SvelteKit↔Stencil boundary,
 and the rules that keep that boundary from eroding.
 
-Related: [decisions.md](./decisions.md) for *why* each choice was made,
-[data-model.md](./data-model.md) for stored shapes,
+Related: [assumptions.md](./assumptions.md) for the calls made where the
+brief was silent, [data-model.md](./data-model.md) for stored shapes,
 [api.md](./api.md) for the upstream API, [testing.md](./testing.md) for how
 all of it is verified.
 
@@ -39,13 +39,11 @@ flowchart LR
 
 The dotted arrow is the part the assignment cares most about: the app does
 not import the library from source. It installs it as a published package
-and consumes only what that package actually exposes — see
-[decisions.md ADR-004](./decisions.md#adr-004-published-package-name).
+and consumes only what that package actually exposes.
 
 **There is deliberately no third box.** No backend, no database, no auth
-server — see [ADR-005](./decisions.md#adr-005-state--persistence--no-backend-browser-storage-only).
-That is also why the app builds as a static site
-([ADR-011](./decisions.md#adr-011-adapter-static-not-adapter-vercel)).
+server — see [assumptions.md](./assumptions.md#no-backend). That is also
+why the app builds as a static site with no server-side code at all.
 
 ---
 
@@ -130,7 +128,7 @@ ASSIGNMENT_2/
 
 | Route | Requirement served | Rendering | Stencil components used |
 |---|---|---|---|
-| `/` | Recipe Discovery | prerendered shell | `search-bar`, `filter-chip-group` ×3, `card` |
+| `/` | Recipe Discovery | prerendered shell | `search-bar`, `filter-chip-group` ×2, `card` |
 | `/recipes/[id]` | Recipe Details | client (fallback) | `rating-badge`, `modal-dialog` |
 | `/recipes/new` | Recipe Management — add | prerendered shell | `form` |
 | `/recipes/[id]/edit` | Recipe Management — edit | client (fallback) | `form` |
@@ -150,8 +148,7 @@ This is the integration requirement, and the rule is one-directional:
 **data goes in as props, facts come out as events.** A Stencil component
 never reads a store, never calls `fetch`, and never imports anything from
 the app. The moment a "reusable" component knows about this app's store
-shape it stops being portable — see
-[ADR-006](./decisions.md#adr-006-component-boundary-between-stencil-and-svelte).
+shape it stops being portable.
 
 ```mermaid
 sequenceDiagram
@@ -197,12 +194,10 @@ Two things about that are deliberate:
   obvious choice, but its internal per-component chunk is fetched via a
   path built from a runtime variable, which Vite's production bundler
   cannot statically analyze — so that file never made it into a real build
-  at all, and every custom element silently failed to render. See
-  [ADR-013](./decisions.md#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly)
-  for the full story; it also removed the
-  [ADR-008](./decisions.md#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)
-  workaround, which existed only to paper over a symptom of the same
-  underlying loader.
+  at all, and every custom element silently failed to render. This is
+  exactly the failure a curl-based check against server-rendered HTML can't
+  catch, since the page still returns 200; it only shows up once a real
+  browser tries to run the JavaScript.
 
 The trade-off: all seven components now load together at startup rather than
 per-route. At roughly 30KB total, that costs nothing worth avoiding — it is
@@ -291,21 +286,21 @@ leaving each route to remember it — details in
 ### Discovery — search combined with filters
 
 Search is not special: it is one more constraint that intersects with the
-filters, rather than something that overrides them
-([ADR-009](./decisions.md#adr-009-discovery--search-intersects-filters-rather-than-overriding-them)).
+filters, rather than something that overrides them. And every result is
+restricted to recipes TheMealDB categorizes as Vegetarian or Vegan — that
+restriction is pushed as its own axis on every query, unconditionally, with
+no chip and no way to turn it off.
 
 ```mermaid
 flowchart TD
     A["searchChange / filterChange"] --> B["runQuery() — token = ++queryToken"]
-    B --> C{"which axes are active?"}
+    B --> C{"which axes apply?"}
+    C -->|"always"| V["diet: filter.php?c=Vegetarian + Vegan<br/>→ unconditional"]
     C -->|"search term"| D["searchRecipes(term)<br/>→ detailed records"]
-    C -->|"categories"| E["filter.php?c= per selection<br/>→ summaries"]
-    C -->|"areas"| F["filter.php?a= per selection"]
-    C -->|"ingredients"| G["filter.php?i= per selection"]
-    C -->|"nothing active"| H["browse: searchRecipes('')"]
-    E & F & G --> I["unionAxis()<br/>union WITHIN an axis"]
+    C -->|"cuisine selected"| F["filter.php?a= per selection"]
+    C -->|"ingredient selected"| G["filter.php?i= per selection"]
+    V & F & G --> I["unionAxis()<br/>union WITHIN an axis"]
     D & I --> J["composeResults()<br/>intersect ACROSS axes"]
-    H --> J
     J --> K["mergePreferDetail()<br/>summary upgraded to detail"]
     K --> L{"token still current?"}
     L -->|"no"| M["discard — a newer query won"]
@@ -320,8 +315,7 @@ the category badge off every card.
 ### Recipe management — the validation round-trip
 
 The Stencil form collects input; the **app** owns the rules. The form has
-no business validation of its own beyond native `required` attributes
-([ADR-006](./decisions.md#adr-006-component-boundary-between-stencil-and-svelte)).
+no business validation of its own beyond native `required` attributes.
 
 ```mermaid
 sequenceDiagram

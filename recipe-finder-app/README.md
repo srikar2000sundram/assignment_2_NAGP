@@ -22,12 +22,11 @@ Node.js 20+ (developed against Node 24) and npm.
 npm install
 ```
 
-This app depends on `recipe-ui-kit` as a regular npm dependency — never as a
-source import. Until it's published, `package.json` points at a locally
-packed tarball, which exposes exactly the same surface a registry install
-would ([ADR-004](../docs/decisions.md#adr-004-published-package-name)).
-Both dependency modes, and the rebuild loop for when you change the library,
-are in [`../docs/getting-started.md`](../docs/getting-started.md).
+This app depends on `@srikar_sundram/recipe-ui-kit` as a regular npm
+dependency, resolved straight from the registry — never as a source
+import. There's also a local-tarball mode for iterating on the library
+before publishing a new version; both modes, and the rebuild loop, are in
+[`../docs/getting-started.md`](../docs/getting-started.md).
 
 ## Developing
 
@@ -59,7 +58,7 @@ npm run preview   # preview it locally
 This app uses `@sveltejs/adapter-static` and builds to `build/` as a plain
 static site. That isn't a compromise: the app has no server-side code at
 all — no `load` functions, no `+page.server.ts`, no hooks — so there is
-nothing to run on a server ([ADR-011](../docs/decisions.md#adr-011-adapter-static-not-adapter-vercel)).
+nothing to run on a server.
 
 Every route prerenders except `/recipes/[id]` and its `edit` child, whose
 ids can't be known at build time; those are served by the `200.html`

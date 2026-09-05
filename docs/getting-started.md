@@ -7,13 +7,12 @@ with it once it is running, see [user-guide.md](./user-guide.md).
 
 - **Node.js 20 or newer** (built and tested on Node 24).
 - **npm** — used for both projects. Do not mix in pnpm/yarn; you will get a
-  second lockfile and inconsistent installs
-  ([ADR-003](./decisions.md#adr-003-package-manager--npm)).
+  second lockfile and inconsistent installs.
 
 That is the whole list. No database, no Docker, no services to stand up,
 **and no environment variables** — there is no `.env` anywhere. TheMealDB
 uses a shared free test key that is part of the base URL in
-`src/lib/api/mealdb.ts` ([api.md](./api.md), [ADR-002](./decisions.md#adr-002-recipe-data-source--themealdb)).
+`src/lib/api/mealdb.ts` ([api.md](./api.md), [assumptions.md](./assumptions.md#recipe-data)).
 
 ## The one thing to understand first
 
@@ -29,8 +28,7 @@ there are two supported dependency modes:
 Both modes exercise the same code path: a tarball install only exposes what
 the package actually publishes (`dist/`, `loader/`, and whatever the
 `exports` map allows), never the raw `.ts` source. So if something would
-break for a real consumer, it breaks here too
-([ADR-004](./decisions.md#adr-004-published-package-name)).
+break for a real consumer, it breaks here too.
 
 ## Setup
 
@@ -110,7 +108,7 @@ cd recipe-ui-kit    && npm run build && npm test
 cd ../recipe-finder-app && npm run check && npm run lint && npm test && npm run build
 ```
 
-Expected: **73** library tests pass, **114** app tests pass, zero
+Expected: **73** library tests pass, **120** app tests pass, zero
 type/lint errors, and a build written to `build/`.
 
 ## Troubleshooting
@@ -119,11 +117,12 @@ type/lint errors, and a build written to `build/`.
 
 If `recipe-ui-*` elements show up in the DOM but render nothing, the app is
 almost certainly importing `recipe-ui-kit`'s lazy loader instead of the
-`dist-custom-elements` modules — see
-[ADR-013](./decisions.md#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly)
-for the full bug. Check `src/routes/+layout.svelte`: it should import each
-component individually (`recipe-ui-kit/recipe-ui-card`, etc.), never
-`recipe-ui-kit/loader`. If you see the loader import, that's a regression.
+`dist-custom-elements` modules — its per-component chunk is fetched via a
+runtime-computed path Vite's production bundler can't statically analyze, so
+that file never lands in the build. Check `src/routes/+layout.svelte`: it
+should import each component individually (`recipe-ui-kit/recipe-ui-card`,
+etc.), never `recipe-ui-kit/loader`. If you see the loader import, that's a
+regression.
 
 ### Dev server cache seems stale after rebuilding the library
 
@@ -153,10 +152,8 @@ Running it from the other side just flips the binding back.
 ### `EPERM: symlink` during `npm run build`
 
 You are on Windows with an adapter that emits symlinks. The project uses
-`@sveltejs/adapter-static` specifically to avoid this
-([ADR-011](./decisions.md#adr-011-adapter-static-not-adapter-vercel)); if you
-see this, check that `vite.config.ts` has not been switched to
-`adapter-vercel`.
+`@sveltejs/adapter-static` specifically to avoid this; if you see this,
+check that `vite.config.ts` has not been switched to `adapter-vercel`.
 
 ### Library changes are not showing up in the app
 
@@ -177,4 +174,4 @@ change is published.
 
 Expected — all of it lives in `localStorage`, so it is per-browser and
 per-device, and clearing site data wipes it. There is no account system and
-no sync ([ADR-005](./decisions.md#adr-005-state--persistence--no-backend-browser-storage-only)).
+no sync ([assumptions.md](./assumptions.md#no-backend)).
