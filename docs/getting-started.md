@@ -23,8 +23,8 @@ there are two supported dependency modes:
 
 | Mode | `recipe-finder-app/package.json` says | Use when |
 |---|---|---|
-| **Local tarball** (current) | `"@srikar_sundram/recipe-ui-kit": "file:../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz"` | Developing both projects side by side, or the package is not published yet |
-| **Published** | `"@srikar_sundram/recipe-ui-kit": "^0.2.0"` | After `npm publish` — see [RUNBOOK.md](./RUNBOOK.md) |
+| **Published** (current) | `"@srikar_sundram/recipe-ui-kit": "^0.2.0"` | Normal use — resolves from the npm registry |
+| **Local tarball** | `"@srikar_sundram/recipe-ui-kit": "file:../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz"` | Iterating on both projects at once, without publishing a version per change |
 
 Both modes exercise the same code path: a tarball install only exposes what
 the package actually publishes (`dist/`, `loader/`, and whatever the
@@ -34,27 +34,26 @@ break for a real consumer, it breaks here too
 
 ## Setup
 
-### Step 1 — build and pack the component library
+### Step 1 — install the app
+
+```sh
+cd recipe-finder-app
+npm install            # pulls @srikar_sundram/recipe-ui-kit from npm
+```
+
+That is all that is needed to run the app: the component library comes from
+the registry like any other dependency.
+
+### Step 2 — (optional) build the library from source
+
+Only needed if you are changing the components. See *Library changes are not
+showing up in the app* under Troubleshooting for the full rebuild loop.
 
 ```sh
 cd recipe-ui-kit
 npm install
 npm run build          # compiles dist/ + loader/
 npm pack               # produces srikar_sundram-recipe-ui-kit-0.2.0.tgz
-```
-
-### Step 2 — install the app against that tarball
-
-```sh
-cd ../recipe-finder-app
-npm install            # the tarball path is already in package.json
-```
-
-If you rebuilt the library at a different version, point the app at it
-explicitly:
-
-```sh
-npm install ../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz
 ```
 
 ### Step 3 — run it
@@ -157,14 +156,18 @@ see this, check that `vite.config.ts` has not been switched to
 
 ### Library changes are not showing up in the app
 
-The app uses the packed tarball, not the library source, so a source edit
-alone changes nothing. The full loop is:
+The app consumes the *published* package, not the library source, so a
+source edit alone changes nothing. To test a library change before
+publishing it, switch the app to the local tarball:
 
 ```sh
 cd recipe-ui-kit && npm run build && npm pack
 cd ../recipe-finder-app && npm install ../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz
 rm -rf node_modules/.vite && npm run dev
 ```
+
+Switch back with `npm install @srikar_sundram/recipe-ui-kit@^0.2.0` once the
+change is published.
 
 ### Favorites / recipes / meal plan disappeared
 

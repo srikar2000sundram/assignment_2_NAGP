@@ -30,13 +30,8 @@ fill this table in afterwards.
 Requires **Node.js 20+** and **npm**. No database, no Docker, no `.env`.
 
 ```sh
-# 1. build and pack the component library
-cd recipe-ui-kit && npm install && npm run build && npm pack
-
-# 2. install the app against that package
-cd ../recipe-finder-app && npm install
-
-# 3. run it
+cd recipe-finder-app
+npm install            # pulls @srikar_sundram/recipe-ui-kit from npm
 npm run dev            # http://localhost:5174
 ```
 
