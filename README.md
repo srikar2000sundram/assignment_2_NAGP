@@ -16,7 +16,7 @@ Assignment brief: [`Recipe_Finder_Meal_Planner_Assignment_v2.pdf`](Recipe_Finder
 
 | | |
 |---|---|
-| npm package — `@srikar_sundram/recipe-ui-kit` | ✅ [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
+| npm package — `@srikar_sundram/recipe-ui-kit` | [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
 | GitHub — component library | ⏳ *ready to push* — [RUNBOOK step 2a](docs/RUNBOOK.md#2a--the-component-library) |
 | GitHub — app + docs | ⏳ *ready to push* — [RUNBOOK step 2b](docs/RUNBOOK.md#2b--the-app--docs) |
 | Deployed application URL | ⏳ *ready to deploy* — [RUNBOOK step 3](docs/RUNBOOK.md#step-3--deploy-to-vercel) |
@@ -128,7 +128,4 @@ Start with whichever matches what you need:
 | [data-model.md](docs/data-model.md) | `Recipe` shape, `localStorage` schema, referential integrity |
 | [api.md](docs/api.md) | TheMealDB endpoints, response normalization, caveats |
 | [RUNBOOK.md](docs/RUNBOOK.md) | Publish, push and deploy — the remaining commands |
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+.

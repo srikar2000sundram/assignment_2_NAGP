@@ -64,7 +64,7 @@ Record the package URL —
 ## Step 2 — push both projects to GitHub
 
 Two repositories, per
-[ADR-001](./decisions.md#adr-001-two-sibling-projects-instead-of-a-monorepo).
+[ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository).
 Create both as **empty** repos on GitHub first (no README, no .gitignore —
 this repo already has them).
 

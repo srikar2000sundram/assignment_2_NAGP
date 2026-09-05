@@ -93,7 +93,7 @@ credentialed command — see [RUNBOOK.md](./RUNBOOK.md))
 | README with assumptions made | ✅ | [`../README.md#assumptions-made`](../README.md#assumptions-made) |
 | Starting the development server | ✅ | [getting-started.md#step-3--run-it](./getting-started.md#step-3--run-it) |
 | npm package link | ✅ | [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
-| GitHub repository link(s) | ⏳ | [RUNBOOK step 2](./RUNBOOK.md#step-2--push-both-projects-to-github) — two repos per [ADR-001](./decisions.md#adr-001-two-sibling-projects-instead-of-a-monorepo) |
+| GitHub repository link(s) | ⏳ | [RUNBOOK step 2](./RUNBOOK.md#step-2--push-both-projects-to-github) — two repos per [ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository) |
 | Deployed application URL | ⏳ | [RUNBOOK step 3](./RUNBOOK.md#step-3--deploy-to-vercel) — static build + `vercel.json` ready |
 
 ## Quality gates (not required by the PDF, held anyway)

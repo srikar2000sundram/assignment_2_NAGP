@@ -33,3 +33,4 @@ coverage
 # change — not a source artifact, and large)
 .architectiq/
 SCREENSHOTS
+.claude/
