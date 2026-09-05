@@ -373,7 +373,7 @@ extra configuration since Vercel serves static output natively, and would
 work equally well on Netlify, Cloudflare Pages or GitHub Pages if the target
 changes.
 
-Two details it forced:
+Three details it forced:
 
 - `/recipes/[id]` and its `edit` child can't be prerendered, since the ids
   come from TheMealDB or the user's own storage and aren't knowable at build
@@ -384,6 +384,15 @@ Two details it forced:
   prerenders to `index.html` and the adapter warned it was about to overwrite
   it. `vercel.json` rewrites unmatched paths to `/200.html`. Filesystem
   matches win first on Vercel, so prerendered routes still serve directly.
+- Vercel's framework auto-detection expects a `svelte.config.js` at the
+  project root to recognise a SvelteKit project, and this project doesn't
+  have one (the adapter is wired up inside `vite.config.ts` instead). Without
+  that file Vercel fell back to treating the project as generic Vite, whose
+  default output folder is `dist`, and the first deploy failed with
+  "No Output Directory named dist found" even though the build had already
+  written everything to `build/` correctly. `vercel.json` now pins
+  `"outputDirectory": "build"` explicitly rather than relying on Vercel's
+  guess.
 
 ---
 
