@@ -6,6 +6,7 @@
 	import { favorites } from '$lib/stores/favorites.svelte';
 	import { mealPlan } from '$lib/stores/mealPlan.svelte';
 	import { userRecipes } from '$lib/stores/userRecipes.svelte';
+	import { isVegetarianCategory } from '$lib/validation/diet';
 	import { WEEKDAYS, WEEKDAY_LABELS, type Recipe, type Weekday } from '$lib/types/recipe';
 
 	let recipe = $state<Recipe | null>(null);
@@ -24,6 +25,14 @@
 	let plannedDays = $derived(
 		recipe ? WEEKDAYS.filter((day) => mealPlan.slots[day]?.id === recipe!.id) : []
 	);
+
+	/**
+	 * Discovery and Add Recipe both already exclude non-vegetarian recipes
+	 * (ADR-014), but this page is reachable by a direct URL to any TheMealDB
+	 * id — including one discovery would never have surfaced — so favoriting
+	 * and planning are gated here too rather than assumed safe.
+	 */
+	let isVegetarian = $derived(recipe ? isVegetarianCategory(recipe.category) : false);
 
 	async function load(id: string) {
 		const token = ++loadToken;
@@ -59,7 +68,7 @@
 	});
 
 	function handleFavoriteToggle() {
-		if (!recipe) return;
+		if (!recipe || !isVegetarian) return;
 		favorites.toggle({ id: recipe.id, source: recipe.source });
 	}
 
@@ -70,7 +79,7 @@
 	}
 
 	function assignToDay(day: Weekday) {
-		if (!recipe) return;
+		if (!recipe || !isVegetarian) return;
 		// Overwrites whatever occupied that day, which is the same "modify a
 		// planned meal" path the meal-plan page's slot control uses.
 		mealPlan.assign(day, { id: recipe.id, source: recipe.source });
@@ -123,46 +132,52 @@
 				<h1 class="recipe-hero__title">{recipe.title}</h1>
 
 				<div class="action-row">
-					<button
-						class="btn"
-						class:btn--primary={favorites.isFavorite(recipe.id)}
-						onclick={handleFavoriteToggle}
-					>
-						<svg
-							width="15"
-							height="15"
-							viewBox="0 0 24 24"
-							fill={favorites.isFavorite(recipe.id) ? 'currentColor' : 'none'}
+					{#if isVegetarian}
+						<button
+							class="btn"
+							class:btn--primary={favorites.isFavorite(recipe.id)}
+							onclick={handleFavoriteToggle}
 						>
-							<path
-								d="M12 20.5s-7.5-4.6-10-9.3C.5 7.8 2.3 4 6 4c2.1 0 3.8 1.2 6 3.7C14.2 5.2 15.9 4 18 4c3.7 0 5.5 3.8 4 7.2-2.5 4.7-10 9.3-10 9.3Z"
-								stroke="currentColor"
-								stroke-width="1.7"
-								stroke-linejoin="round"
-							/>
-						</svg>
-						{favorites.isFavorite(recipe.id) ? 'Favorited' : 'Add to favorites'}
-					</button>
-					<button class="btn" onclick={() => (planPickerOpen = true)}>
-						<svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-							<rect
-								x="3"
-								y="5"
-								width="18"
-								height="16"
-								rx="2"
-								stroke="currentColor"
-								stroke-width="1.6"
-							/>
-							<path
-								d="M8 3v4M16 3v4M3 10h18"
-								stroke="currentColor"
-								stroke-width="1.6"
-								stroke-linecap="round"
-							/>
-						</svg>
-						{plannedDays.length > 0 ? 'Planned' : 'Add to meal plan'}
-					</button>
+							<svg
+								width="15"
+								height="15"
+								viewBox="0 0 24 24"
+								fill={favorites.isFavorite(recipe.id) ? 'currentColor' : 'none'}
+							>
+								<path
+									d="M12 20.5s-7.5-4.6-10-9.3C.5 7.8 2.3 4 6 4c2.1 0 3.8 1.2 6 3.7C14.2 5.2 15.9 4 18 4c3.7 0 5.5 3.8 4 7.2-2.5 4.7-10 9.3-10 9.3Z"
+									stroke="currentColor"
+									stroke-width="1.7"
+									stroke-linejoin="round"
+								/>
+							</svg>
+							{favorites.isFavorite(recipe.id) ? 'Favorited' : 'Add to favorites'}
+						</button>
+						<button class="btn" onclick={() => (planPickerOpen = true)}>
+							<svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+								<rect
+									x="3"
+									y="5"
+									width="18"
+									height="16"
+									rx="2"
+									stroke="currentColor"
+									stroke-width="1.6"
+								/>
+								<path
+									d="M8 3v4M16 3v4M3 10h18"
+									stroke="currentColor"
+									stroke-width="1.6"
+									stroke-linecap="round"
+								/>
+							</svg>
+							{plannedDays.length > 0 ? 'Planned' : 'Add to meal plan'}
+						</button>
+					{:else}
+						<p class="diet-error-banner">
+							This recipe isn't vegetarian, so it can't be favorited or added to your meal plan.
+						</p>
+					{/if}
 
 					{#if recipe.source === 'user'}
 						<a class="btn" href={resolve('/recipes/[id]/edit', { id: recipe.id })}>Edit</a>

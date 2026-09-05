@@ -4,6 +4,7 @@
 	import { lookupRecipe } from '$lib/api/mealdb';
 	import { favorites } from '$lib/stores/favorites.svelte';
 	import { userRecipes } from '$lib/stores/userRecipes.svelte';
+	import { isVegetarianCategory } from '$lib/validation/diet';
 	import type { Recipe, RecipeRef } from '$lib/types/recipe';
 
 	let resolved = $state<Recipe[]>([]);
@@ -33,7 +34,11 @@
 			})
 		);
 		if (token !== resolveToken) return;
-		resolved = recipes.filter((r): r is Recipe => r !== null);
+		// Discovery and Add Recipe both already enforce vegetarian-only
+		// (ADR-014), so this only matters for a favorite saved before that
+		// restriction existed. Hidden here rather than deleted — this page
+		// doesn't own the favorites store's data, only its display.
+		resolved = recipes.filter((r): r is Recipe => r !== null && isVegetarianCategory(r.category));
 		loading = false;
 	}
 

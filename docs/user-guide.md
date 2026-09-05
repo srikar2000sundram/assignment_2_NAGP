@@ -14,6 +14,12 @@ already has around 25 recipes loaded before you type anything.
 
 **Route:** `/` (Discover)
 
+Every result on this page — browse, search, or filtered — is vegetarian or
+vegan. That's not a filter you can turn off; it's applied on every query
+regardless of anything else you select, so a search for a meat dish
+correctly returns nothing rather than showing it anyway
+([ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only)).
+
 ### Browse
 
 Open the app. The **Browse** grid is already populated. Click any card's
@@ -22,19 +28,18 @@ favorite it without leaving the grid.
 
 ### Search
 
-Type into the search box — for example `chicken`, `teriyaki`, `pasta`.
+Type into the search box — for example `paneer`, `pancakes`, `pasta`.
 Results update automatically about 300 ms after you stop typing; there is
 no Enter to press. The **✕** inside the box clears the search immediately.
 
 ### Filter
 
-Three independent filter rows, each multi-select:
+Two independent filter rows, each multi-select:
 
 | Row | Values | Source |
 |---|---|---|
-| **Category** | Chicken, Dessert, Vegetarian, … | fetched live from TheMealDB |
 | **Cuisine** | Italian, Thai, Japanese, … | fetched live from TheMealDB |
-| **Main ingredient** | 12 common staples | a curated shortlist ([ADR-010](./decisions.md#adr-010-curated-ingredient-filter-options)) |
+| **Main ingredient** | 12 vegetarian staples | a curated shortlist ([ADR-010](./decisions.md#adr-010-curated-ingredient-filter-options)) |
 
 Click chips to toggle them on and off. A tick appears on active chips.
 
@@ -43,20 +48,22 @@ Click chips to toggle them on and off. A tick appears on active chips.
 These compose rather than override one another, which is worth trying
 explicitly:
 
-- **Within one row, selections widen the result.** Category = Chicken +
-  Dessert means *either* (a recipe that is both essentially never exists).
-- **Across rows, selections narrow it.** Category = Chicken **and**
-  Cuisine = Japanese means both must hold.
-- **A search term narrows further still.** Searching `chicken` with
-  Cuisine = Japanese active gives Japanese recipes whose name matches
-  "chicken" — the search does *not* discard the filter.
+- **Within one row, selections widen the result.** Ingredient = Paneer +
+  Tofu means *either*.
+- **Across rows, selections narrow it.** Ingredient = Paneer **and**
+  Cuisine = Indian means both must hold.
+- **A search term narrows further still.** Searching `curry` with
+  Cuisine = Indian active gives Indian recipes whose name matches "curry"
+  — the search does *not* discard the filter.
 
-**Try this:** type `chicken`, then click the **Japanese** cuisine chip. The
-summary line beneath the filters reads *Searching "chicken" within 1
+**Try this:** type `curry`, then click the **Indian** cuisine chip. The
+summary line beneath the filters reads *Searching "curry" within 1
 filter*, and the heading changes from **Browse** to **Results**.
 
 Whenever anything is active, a **Clear all** button appears in that summary
-line and resets everything back to browse.
+line and resets everything back to browse. Clearing never brings back
+non-vegetarian recipes — only the cuisine/ingredient filters and the search
+term reset; the vegetarian restriction itself has no "off".
 
 If a combination matches nothing you get an explicit empty state — *Nothing
 matches all of those at once. Try removing a filter.* — rather than a blank
@@ -119,10 +126,17 @@ Validation is layered, and both layers are worth seeing:
 | Enter a Title longer than 120 characters | *Title must be 120 characters or fewer.* |
 | Remove every ingredient row (or leave every name blank, amounts only) | *Add at least one ingredient.* |
 | Enter only spaces in Instructions | *Instructions are required.* |
+| Category is anything other than "Vegetarian" or "Vegan" | *This app only accepts vegetarian recipes.* |
 
 Errors render beneath the offending field, and **all failing fields report
 at once** rather than one at a time. Your typing is preserved — the form
 does not reset when validation fails.
+
+The Category check is why: this app never shows a non-vegetarian recipe
+anywhere, including ones you add yourself
+([ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only)). It shows as
+a banner above the form rather than beneath the Category field, since it's
+an app-wide rule rather than a per-field one.
 
 Amount-without-a-name rows are dropped silently on save; a name with no
 amount is kept.

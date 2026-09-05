@@ -40,10 +40,11 @@ Longer version, including the two dependency modes and troubleshooting:
 Five feature areas, one per functional requirement in the brief — the
 click-by-click walkthrough is [`docs/user-guide.md`](docs/user-guide.md):
 
-- **Recipe Discovery** — debounced name search, browse, and three
-  multi-select filter axes (category, cuisine, main ingredient). Search and
-  filters **compose**: selections union within an axis and intersect across
-  axes, so a search term narrows your filtered set instead of replacing it.
+- **Recipe Discovery** — debounced name search, browse, and two multi-select
+  filter axes (cuisine, main ingredient), with every result restricted to
+  vegetarian and vegan recipes. Search and filters **compose**: selections
+  union within an axis and intersect across axes, so a search term narrows
+  your filtered set instead of replacing it.
 - **Recipe Details** — dedicated page per recipe with every ingredient and
   measurement plus full instructions, for both API and user-created recipes.
 - **Recipe Management** — create, edit and delete your own recipes, with
@@ -61,7 +62,7 @@ cd recipe-ui-kit        && npm run build && npm test
 cd ../recipe-finder-app && npm run check && npm run lint && npm test && npm run build
 ```
 
-Expected: **187 tests pass** (73 library + 114 app), zero type errors, zero
+Expected: **193 tests pass** (73 library + 120 app), zero type errors, zero
 lint errors, and a production build in `recipe-finder-app/build/`.
 
 ## Assumptions made
@@ -77,11 +78,18 @@ lint errors, and a production build in `recipe-finder-app/build/`.
   ([ADR-005](docs/decisions.md#adr-005-state--persistence--no-backend-browser-storage-only)).
 - **Recipe management applies to your own recipes only.** API recipes are
   read-only, per the brief's wording *"edit recipes created by the user"*.
-- **"Browse"** (nothing searched or filtered) calls `search.php?s=` with an
-  empty query, which returns a fixed set of ~25 meals — confirmed
-  behaviour, not documented by TheMealDB ([docs/api.md](docs/api.md)).
-- **The main-ingredient filter offers a curated shortlist**, not TheMealDB's
-  full ~600-item ingredient list, which is unusable as a chip row
+- **The app only ever shows vegetarian or vegan recipes**, everywhere —
+  discovery, your own recipes, favorites, and the meal plan. This wasn't in
+  the original brief; it was added afterward and applies unconditionally,
+  with no way to turn it off
+  ([ADR-014](docs/decisions.md#adr-014-the-app-is-vegetarian-only)).
+- **"Browse"** (nothing searched or filtered) shows every recipe TheMealDB
+  categorizes as Vegetarian or Vegan — the same restriction that applies to
+  every other query, not a separate case
+  ([docs/api.md](docs/api.md)).
+- **The main-ingredient filter offers a curated, vegetarian-only shortlist**,
+  not TheMealDB's full ~600-item ingredient list, which is unusable as a
+  chip row
   ([ADR-010](docs/decisions.md#adr-010-curated-ingredient-filter-options)).
 - **Deletion uses an inline two-step confirm** rather than a native
   `window.confirm()` dialog.
@@ -121,7 +129,7 @@ Start with whichever matches what you need:
 | [architecture.md](docs/architecture.md) | How it is built — diagrams, routing, the Stencil contract, state, key flows, versioning |
 | [requirements-traceability.md](docs/requirements-traceability.md) | Every brief requirement → the code → the tests |
 | [testing.md](docs/testing.md) | Test strategy, full case inventory, edge cases, known gaps |
-| [decisions.md](docs/decisions.md) | The 12 ADRs — why each choice was made |
+| [decisions.md](docs/decisions.md) | The 14 ADRs — why each choice was made |
 | [data-model.md](docs/data-model.md) | `Recipe` shape, `localStorage` schema, referential integrity |
 | [api.md](docs/api.md) | TheMealDB endpoints, response normalization, caveats |
 | [RUNBOOK.md](docs/RUNBOOK.md) | Publish, push and deploy — the commands used to reach the state above |

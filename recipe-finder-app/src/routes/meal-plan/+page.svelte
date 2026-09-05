@@ -3,6 +3,7 @@
 	import { favorites } from '$lib/stores/favorites.svelte';
 	import { mealPlan } from '$lib/stores/mealPlan.svelte';
 	import { userRecipes } from '$lib/stores/userRecipes.svelte';
+	import { isVegetarianCategory } from '$lib/validation/diet';
 	import {
 		WEEKDAYS,
 		WEEKDAY_LABELS,
@@ -40,9 +41,15 @@
 					ref.source === 'user'
 						? userRecipes.get(ref.id)
 						: await lookupRecipe(ref.id).catch(() => null);
+				// A day planned before the vegetarian-only restriction (ADR-014)
+				// existed renders as empty rather than showing a non-veg recipe;
+				// the underlying assignment in the store is left untouched.
+				const showable = recipe && isVegetarianCategory(recipe.category) ? recipe : null;
 				return [
 					day,
-					recipe ? { id: recipe.id, title: recipe.title, image: recipe.image ?? undefined } : null
+					showable
+						? { id: showable.id, title: showable.title, image: showable.image ?? undefined }
+						: null
 				] as const;
 			})
 		);
@@ -58,10 +65,13 @@
 				return lookupRecipe(ref.id).catch(() => null);
 			})
 		);
+		// Own recipes are already vegetarian-only at creation time and
+		// favorites at save time, but this still filters both — defense
+		// against any pre-existing data from before ADR-014.
 		const combined = [
 			...userRecipes.all,
 			...favoriteRecipes.filter((r): r is Recipe => r !== null)
-		];
+		].filter((r) => isVegetarianCategory(r.category));
 		if (token !== pickerToken) return;
 		const deduped: Recipe[] = [];
 		for (const r of combined) {

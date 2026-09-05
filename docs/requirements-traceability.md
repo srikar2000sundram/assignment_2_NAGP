@@ -102,7 +102,7 @@ credentialed command — see [RUNBOOK.md](./RUNBOOK.md))
 |---|---|
 | TypeScript / `svelte-check` | ✅ 0 errors, 0 warnings across 375 files |
 | ESLint + Prettier | ✅ clean |
-| Automated tests | ✅ 187 passing (73 library + 114 app) |
+| Automated tests | ✅ 193 passing (73 library + 120 app) |
 | Production build | ✅ `npm run build` succeeds |
 | Accessibility basics | ✅ ARIA on interactive components, keyboard activation, focus-visible styling |
 | Dark mode | ✅ token-level, no per-component work |

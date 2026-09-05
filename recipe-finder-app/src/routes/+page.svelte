@@ -7,7 +7,6 @@
 		filterByCategory,
 		filterByArea,
 		filterByIngredient,
-		listCategories,
 		listAreas
 	} from '$lib/api/mealdb';
 	import { composeResults, unionAxis, type RecipeAxis } from '$lib/search/compose';
@@ -17,11 +16,17 @@
 	import type { Recipe } from '$lib/types/recipe';
 	import type { FilterOption } from '@srikar_sundram/recipe-ui-kit';
 
+	/**
+	 * This app only ever shows vegetarian/vegan recipes — see
+	 * docs/decisions.md ADR-014. This axis is fetched and intersected on
+	 * every query unconditionally, not gated behind any user selection, so
+	 * it can never be "cleared" the way the other filter axes can.
+	 */
+	const VEGETARIAN_DIET_VALUES = ['Vegetarian', 'Vegan'];
+
 	let query = $state('');
-	let selectedCategories = $state<string[]>([]);
 	let selectedAreas = $state<string[]>([]);
 	let selectedIngredients = $state<string[]>([]);
-	let categoryOptions = $state<FilterOption[]>([]);
 	let areaOptions = $state<FilterOption[]>([]);
 	const ingredientOptions = COMMON_INGREDIENTS;
 
@@ -36,15 +41,12 @@
 	 */
 	let queryToken = 0;
 
-	let activeFilterCount = $derived(
-		selectedCategories.length + selectedAreas.length + selectedIngredients.length
-	);
+	let activeFilterCount = $derived(selectedAreas.length + selectedIngredients.length);
 	let hasAnyConstraint = $derived(query.trim().length > 0 || activeFilterCount > 0);
 
 	async function loadFilterOptions() {
 		try {
-			const [categories, areas] = await Promise.all([listCategories(), listAreas()]);
-			categoryOptions = categories.map((c) => ({ value: c, label: c }));
+			const areas = await listAreas();
 			areaOptions = areas.map((a) => ({ value: a, label: a }));
 		} catch {
 			// Non-critical: search/browse still work without filter chips populated.
@@ -69,13 +71,15 @@
 		try {
 			const term = query.trim();
 
-			// Only active axes are fetched, and only active axes are handed to
-			// composeResults() — an omitted axis means "unconstrained", whereas an
-			// axis that is present but matched nothing correctly empties the result.
-			const axisRequests: Promise<RecipeAxis>[] = [];
-			if (selectedCategories.length > 0) {
-				axisRequests.push(fetchAxis('category', selectedCategories, filterByCategory));
-			}
+			// The vegetarian/vegan axis is pushed unconditionally, on every
+			// query — this app never shows a non-vegetarian recipe (ADR-014).
+			// Every other axis is only fetched, and only handed to
+			// composeResults(), when the user has actually selected something:
+			// an omitted axis means "unconstrained", whereas an axis that is
+			// present but matched nothing correctly empties the result.
+			const axisRequests: Promise<RecipeAxis>[] = [
+				fetchAxis('diet', VEGETARIAN_DIET_VALUES, filterByCategory)
+			];
 			if (selectedAreas.length > 0) {
 				axisRequests.push(fetchAxis('area', selectedAreas, filterByArea));
 			}
@@ -88,11 +92,11 @@
 				Promise.all(axisRequests)
 			]);
 
-			// The default browse set is only needed when nothing is constraining.
-			const browseResults = term || axes.length > 0 ? [] : await searchRecipes('');
-
+			// composeResults() only ever falls back to the browse set when no
+			// axis is active at all — with the diet axis always present, that
+			// never happens here, so there is no separate browse fetch to make.
 			if (token !== queryToken) return;
-			results = composeResults({ searchResults, axes, browseResults });
+			results = composeResults({ searchResults, axes, browseResults: [] });
 		} catch {
 			if (token !== queryToken) return;
 			error = 'Could not reach the recipe API. Please try again.';
@@ -112,11 +116,6 @@
 		runQuery();
 	}
 
-	function handleCategoryFilterChange(ev: CustomEvent<{ selected: string[] }>) {
-		selectedCategories = ev.detail.selected;
-		runQuery();
-	}
-
 	function handleAreaFilterChange(ev: CustomEvent<{ selected: string[] }>) {
 		selectedAreas = ev.detail.selected;
 		runQuery();
@@ -129,7 +128,6 @@
 
 	function clearAll() {
 		query = '';
-		selectedCategories = [];
 		selectedAreas = [];
 		selectedIngredients = [];
 		runQuery();
@@ -177,24 +175,16 @@
 <div class="page-header">
 	<span class="eyebrow">Recipe Finder</span>
 	<h1>What are we cooking today?</h1>
-	<p>Search thousands of recipes, save your favorites, and plan the week ahead.</p>
+	<p>
+		Search thousands of vegetarian recipes, save your favorites, and plan the week ahead.
+		<span class="diet-note">Showing vegetarian &amp; vegan recipes only.</span>
+	</p>
 	<div class="filters-row">
 		<recipe-ui-search-bar
 			value={query}
 			placeholder="Search by name — “teriyaki”, “pancakes”…"
 			onsearchChange={handleSearchChange}
 		></recipe-ui-search-bar>
-
-		{#if categoryOptions.length > 0}
-			<div class="filter-axis">
-				<span class="filter-axis__label">Category</span>
-				<recipe-ui-filter-chip-group
-					options={categoryOptions}
-					selected={selectedCategories}
-					onfilterChange={handleCategoryFilterChange}
-				></recipe-ui-filter-chip-group>
-			</div>
-		{/if}
 
 		{#if areaOptions.length > 0}
 			<div class="filter-axis">

@@ -4,9 +4,12 @@
 	import { resolve } from '$app/paths';
 	import { userRecipes } from '$lib/stores/userRecipes.svelte';
 	import { validateRecipeForm, isRecipeFormValid } from '$lib/validation/recipe';
+	import { isVegetarianCategory, NON_VEGETARIAN_CATEGORY_MESSAGE } from '$lib/validation/diet';
 	import type { RecipeFormValue, RecipeFormErrors } from '@srikar_sundram/recipe-ui-kit';
 
 	let errors = $state<RecipeFormErrors>({});
+	/** See recipes/new/+page.svelte for why this is separate from `errors`. */
+	let dietError = $state<string | null>(null);
 	let recipe = $derived(page.params.id ? userRecipes.get(page.params.id) : undefined);
 
 	function handleSubmit(ev: CustomEvent<{ recipe: RecipeFormValue }>) {
@@ -15,9 +18,16 @@
 		const validationErrors = validateRecipeForm(value);
 		if (!isRecipeFormValid(validationErrors)) {
 			errors = validationErrors;
+			dietError = null;
+			return;
+		}
+		if (!isVegetarianCategory(value.category)) {
+			errors = {};
+			dietError = NON_VEGETARIAN_CATEGORY_MESSAGE;
 			return;
 		}
 		errors = {};
+		dietError = null;
 		userRecipes.update(recipe.id, value);
 		goto(resolve('/recipes/[id]', { id: recipe.id }));
 	}
@@ -44,6 +54,9 @@
 	</div>
 {:else}
 	<div class="form-panel">
+		{#if dietError}
+			<p class="diet-error-banner">{dietError}</p>
+		{/if}
 		<recipe-ui-form
 			mode="edit"
 			initialValue={{

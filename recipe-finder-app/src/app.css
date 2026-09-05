@@ -191,6 +191,21 @@ img {
 	font-size: 15px;
 }
 
+/* The always-on vegetarian/vegan restriction (ADR-014) is enforced whether
+   or not it's visible, but calling it out explicitly avoids a silent
+   surprise when e.g. a "Chicken" search comes back empty. */
+.diet-note {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	padding: 2px 10px;
+	border-radius: var(--ruik-radius-pill);
+	background: color-mix(in srgb, var(--ruik-color-accent) 14%, transparent);
+	color: var(--ruik-color-accent);
+	font-size: 12px;
+	font-weight: 600;
+}
+
 .eyebrow {
 	font-size: 11.5px;
 	font-weight: 700;
@@ -624,4 +639,17 @@ section + section {
 	.form-panel {
 		padding: 20px;
 	}
+}
+
+/* App-wide policy failure (ADR-014) — distinct from <recipe-ui-form>'s own
+   per-field errors, which live in its shadow DOM and can't be reused here. */
+.diet-error-banner {
+	margin: 0 0 16px;
+	padding: 10px 14px;
+	border-radius: var(--ruik-radius-md);
+	border: 1px solid color-mix(in srgb, var(--ruik-color-danger) 40%, transparent);
+	background: color-mix(in srgb, var(--ruik-color-danger) 8%, transparent);
+	color: var(--ruik-color-danger);
+	font-size: 13.5px;
+	font-weight: 500;
 }

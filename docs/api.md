@@ -73,10 +73,13 @@ Two things I only found by actually calling the API, not by reading docs:
 - **An empty `search.php?s=` isn't a zero-result search.** I tried it on a
   whim while looking for a way to power the discovery page's default
   "browse everything" view, and it actually comes back with a real set of
-  roughly 25 meals across categories. That became the default view before
-  a user types or filters anything — otherwise I'd have needed some other
-  "list everything" endpoint, which TheMealDB doesn't expose on the free
-  tier.
+  roughly 25 meals across categories, which is what "Browse" originally
+  showed by default before anything else applied. That's since been
+  superseded by
+  [ADR-014](./decisions.md#adr-014-the-app-is-vegetarian-only): the default
+  view is now `filter.php?c=Vegetarian` unioned with `filter.php?c=Vegan`,
+  since browse has to obey the same vegetarian-only restriction as
+  everything else, and this empty-search trick has no way to express that.
 
 ## How many requests one query makes
 

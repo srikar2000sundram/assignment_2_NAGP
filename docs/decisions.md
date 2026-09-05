@@ -523,3 +523,82 @@ this was broken, because none of them render the app and click through it.
 [testing.md](./testing.md) already listed the absence of end-to-end route
 tests as a known gap; this is the concrete failure that gap allows through,
 not a hypothetical one.
+
+---
+
+## ADR-014: The app is vegetarian-only
+
+This wasn't in the original brief. It came directly from feedback: no
+non-vegetarian item should ever show up anywhere in the app. Rather than
+bolt on a toggle, I made it an unconditional, app-wide rule.
+
+The first problem is definitional. TheMealDB has no per-recipe boolean for
+"is this vegetarian" — the closest reliable signal is its own category
+field, which includes exactly two diet categories: "Vegetarian" and
+"Vegan". I considered scanning ingredient names for meat/fish/poultry terms
+instead, to catch recipes that are genuinely meat-free but filed under some
+other category like "Dessert" or "Side". I decided against it: keyword
+matching against ingredient names is exactly the kind of thing that looks
+fine in the five test cases you try and then quietly misfires in production
+— "coconut milk" isn't dairy, "fish sauce" isn't always spelled with "fish"
+in it, and a maintained deny-list needs to keep being maintained. Category
+membership is unambiguous and it's how TheMealDB itself already classifies
+these recipes, so I used that as the one definition of "vegetarian" this
+app follows everywhere: `isVegetarianCategory()` in
+`app/src/lib/validation/diet.ts`.
+
+**Discovery.** The old approach would have been a "Vegetarian" chip in the
+existing category filter row, letting the user opt in. That's not what was
+asked — the ask is that non-veg never appears, not that it's one filter
+away. So `+page.svelte`'s `runQuery()` now pushes a `filterByCategory`
+axis for `['Vegetarian', 'Vegan']` on every single query, unconditionally,
+using the exact same intersection mechanism from
+[ADR-009](#adr-009-discovery--search-intersects-filters-rather-than-overriding-them)
+that a user-selected filter would use — it just isn't gated behind any
+selection, and there's no chip for it because it isn't a choice. The old
+generic "Category" filter row (populated from `listCategories()`, letting
+someone filter by Chicken or Beef) is gone entirely, since offering a chip
+that always intersects to zero results would be a worse experience than not
+offering it. The curated ingredient list from
+[ADR-010](#adr-010-curated-ingredient-filter-options) also dropped its three
+meat/fish entries (Chicken, Beef, Salmon) for three vegetarian ones I
+confirmed both exist as TheMealDB ingredient names and actually return
+recipes: Paneer, Tofu, Chickpeas.
+
+**User-created recipes.** `<recipe-ui-form>`'s category field is free text,
+so an own-recipe needs the same rule enforced at submission: its category
+must be "Vegetarian" or "Vegan" or the recipe is rejected. This doesn't fit
+`RecipeFormErrors` — that type, declared by the library, only has slots for
+title/ingredients/instructions, and I wasn't going to bump the library's
+version and touch its component markup for one app-specific policy that has
+nothing to do with what a "recipe form" component should know about
+(that boundary is the whole point of
+[ADR-006](#adr-006-component-boundary-between-stencil-and-svelte)). So the
+check lives in the route, using the same `isVegetarianCategory()`, and
+shows as a standalone banner alongside the form rather than a fourth
+field-level error. Both `/recipes/new` and the edit route enforce it the
+same way.
+
+**Reachable by direct URL.** `/recipes/<id>` accepts any TheMealDB id
+directly, including ones discovery would never surface — someone can type
+`/recipes/52940` (a beef stew) whether or not it ever appeared in a search.
+So the detail page independently checks the loaded recipe's category and
+disables Favorite / Add to meal plan for anything that fails, with a
+one-line explanation instead of the buttons. This is the same rule
+enforced a third time, at the one remaining entry point that bypasses both
+of the others.
+
+**Data saved before this rule existed.** Favorites and meal-plan
+assignments store only `{id, source}` and resolve the full recipe on
+every read, which meant hiding a stale non-vegetarian entry needed no
+migration — `favorites/+page.svelte` and `meal-plan/+page.svelte` both
+filter their resolved lists through the same predicate before rendering. A
+day that was planned with a non-vegetarian recipe before this shipped
+now just renders as empty rather than showing it; the underlying
+`localStorage` reference isn't deleted, only hidden, since these routes
+display favorites and the plan, they don't own clearing them out.
+
+The result: one predicate, checked at four independent points (discovery,
+recipe creation/edit, the detail page, and stale-data display), rather than
+one central filter that something could bypass by reaching a route a
+different way.

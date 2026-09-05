@@ -8,13 +8,14 @@
  *
  * Values must match TheMealDB's ingredient spelling exactly, since they are
  * passed straight to `filter.php?i=`.
+ *
+ * Vegetarian-only, per ADR-014 — Chicken/Beef/Salmon were dropped and
+ * Paneer/Tofu/Chickpeas added, each confirmed to both exist as a TheMealDB
+ * ingredient name and return recipes in practice.
  */
 import type { FilterOption } from '@srikar_sundram/recipe-ui-kit';
 
 export const COMMON_INGREDIENTS: FilterOption[] = [
-	{ value: 'Chicken', label: 'Chicken' },
-	{ value: 'Beef', label: 'Beef' },
-	{ value: 'Salmon', label: 'Salmon' },
 	{ value: 'Rice', label: 'Rice' },
 	{ value: 'Potatoes', label: 'Potatoes' },
 	{ value: 'Onion', label: 'Onion' },
@@ -23,5 +24,8 @@ export const COMMON_INGREDIENTS: FilterOption[] = [
 	{ value: 'Cheese', label: 'Cheese' },
 	{ value: 'Eggs', label: 'Eggs' },
 	{ value: 'Mushrooms', label: 'Mushrooms' },
-	{ value: 'Spinach', label: 'Spinach' }
+	{ value: 'Spinach', label: 'Spinach' },
+	{ value: 'Paneer', label: 'Paneer' },
+	{ value: 'Tofu', label: 'Tofu' },
+	{ value: 'Chickpeas', label: 'Chickpeas' }
 ];
