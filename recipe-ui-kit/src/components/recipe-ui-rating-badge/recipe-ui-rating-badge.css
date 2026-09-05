@@ -1,0 +1,36 @@
+:host {
+  display: inline-block;
+  font-family: var(--ruik-font-sans, system-ui, -apple-system, 'Segoe UI', sans-serif);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--ruik-radius-pill, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+}
+
+.badge--neutral {
+  background: var(--ruik-color-surface-alt, #f4ede2);
+  color: var(--ruik-color-text-muted, #6b6560);
+  border-color: var(--ruik-color-border, #e8dfd0);
+}
+
+.badge--success {
+  background: color-mix(in srgb, var(--ruik-color-accent, #4d7c58) 16%, transparent);
+  color: var(--ruik-color-accent, #4d7c58);
+}
+
+.badge--warning {
+  background: color-mix(in srgb, #b5650a 14%, transparent);
+  color: #b5650a;
+}
+
+.badge--info {
+  background: color-mix(in srgb, var(--ruik-color-primary, #c2410c) 12%, transparent);
+  color: var(--ruik-color-primary, #c2410c);
+}

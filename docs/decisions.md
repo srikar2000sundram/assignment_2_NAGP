@@ -10,7 +10,12 @@ obvious from reading the code.
 
 ---
 
-## ADR-001: Two sibling projects instead of a monorepo
+## ADR-001: Project layout — two sibling projects, one repository
+
+**Originally decided as two separate git repositories; superseded at
+submission time — see the amendment at the end of this entry. The two
+projects remain independent (separate `package.json`, separate
+`node_modules`, no workspace); only the repository count changed.**
 
 The assignment wants two deliverables that depend on each other — a Stencil
 component library and a SvelteKit app that consumes it — and the natural
@@ -36,6 +41,46 @@ work. I solved that
 with a `npm pack` + local tarball install instead of a workspace link or
 `npm link` — more on that under ADR-004, since it's really the same
 problem from the other side.
+
+
+### Amendment — one repository, not two
+
+I shipped this as a **single repository**
+([assignment_2_NAGP](https://github.com/srikar2000sundram/assignment_2_NAGP))
+containing both projects, which reverses the decision above. Two things
+changed my mind.
+
+First, I re-read the deliverables. They ask for source code for the app,
+source code for the library, and a "Link to **github repository**" —
+singular. Two repos would mean handing over a second link the brief never
+asks for, and splitting one submission across two places for a reviewer to
+find. The original reasoning above was about *my* development hygiene; it
+was never about what the deliverable actually is.
+
+Second, and more importantly, the goal that motivated the split is already
+met by other means. The worry was that co-locating the projects makes it too
+easy to accidentally consume the library from source and never notice.
+That's a real failure mode — but the thing that actually prevents it is the
+dependency itself, not the directory layout. `recipe-finder-app` depends on
+`"@srikar_sundram/recipe-ui-kit": "^0.2.0"`, and `package-lock.json`
+resolves it from `registry.npmjs.org`. It can only see `dist/`, `loader/`
+and whatever the `exports` map allows — the `recipe-ui-kit/src` sitting one
+directory away is invisible to it. Nothing about sharing a repo weakens
+that, and the lockfile is a far stronger guarantee than physical separation
+ever was, because it's checked in and verifiable.
+
+What I gave up: the library no longer has independent git history (its four
+commits were folded in when it became a subdirectory), and it can't be
+cloned on its own. Neither costs anything here — it's published to npm, so
+consumers install it from the registry rather than cloning it, and its
+releases are tracked in [CHANGELOG.md](../recipe-ui-kit/CHANGELOG.md) rather
+than in a separate commit log.
+
+The one thing to keep straight in a single repo: the two projects still have
+**separate `package.json` files and separate `node_modules`**. This is not
+an npm workspace, and deliberately so — a workspace would hoist and link the
+library locally, which *would* reintroduce exactly the failure mode the
+original decision was guarding against.
 
 ---
 

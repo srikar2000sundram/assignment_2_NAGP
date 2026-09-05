@@ -11,10 +11,6 @@ build
 # Packed tarballs — build artifacts, produced by `npm pack`
 *.tgz
 
-# The component library is its own git repository (docs/decisions.md ADR-001).
-# It is pushed separately and consumed from npm, not vendored here.
-recipe-ui-kit/
-
 # Editors / OS
 .DS_Store
 Thumbs.db

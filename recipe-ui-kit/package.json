@@ -1,0 +1,69 @@
+{
+  "name": "@srikar_sundram/recipe-ui-kit",
+  "version": "0.2.0",
+  "description": "Reusable StencilJS web-component library (recipe card, search bar, filter chips, meal-plan slot, modal, recipe form) built for the Recipe Finder & Meal Planner SvelteKit app.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "collection": "dist/collection/collection-manifest.json",
+  "collection:main": "dist/collection/index.js",
+  "unpkg": "dist/recipe-ui-kit/recipe-ui-kit.esm.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/recipe-ui-kit/recipe-ui-kit.esm.js",
+      "require": "./dist/recipe-ui-kit/recipe-ui-kit.cjs.js"
+    },
+    "./*": {
+      "types": "./dist/components/*.d.ts",
+      "import": "./dist/components/*.js"
+    },
+    "./loader": {
+      "import": "./loader/index.js",
+      "require": "./loader/index.cjs",
+      "types": "./loader/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srikar2000sundram/assignment_2_NAGP.git",
+    "directory": "recipe-ui-kit"
+  },
+  "homepage": "https://github.com/srikar2000sundram/assignment_2_NAGP/blob/main/recipe-ui-kit/readme.md",
+  "bugs": {
+    "url": "https://github.com/srikar2000sundram/assignment_2_NAGP/issues"
+  },
+  "keywords": [
+    "stencil",
+    "web-components",
+    "custom-elements",
+    "recipe-finder"
+  ],
+  "files": [
+    "dist/",
+    "loader/",
+    "CHANGELOG.md",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "stencil build",
+    "prepublishOnly": "npm run build",
+    "start": "stencil build --dev --watch --serve",
+    "test": "stencil-test --prod",
+    "test:watch": "stencil-test --prod --watch",
+    "generate": "stencil generate"
+  },
+  "devDependencies": {
+    "@stencil/core": "^4.27.1 || ^5.0.0-0",
+    "@stencil/vitest": "^1.8.3",
+    "@types/node": "^22.13.5",
+    "@vitest/browser-playwright": "^4.0.0",
+    "playwright": "^1.52.0",
+    "vitest": "^4.0.0"
+  },
+  "license": "MIT"
+}

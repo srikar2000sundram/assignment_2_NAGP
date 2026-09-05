@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  font-family: var(--ruik-font-sans, system-ui, -apple-system, 'Segoe UI', sans-serif);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--ruik-color-border, #e8dfd0);
+  border-radius: var(--ruik-radius-pill, 999px);
+  padding: 12px 18px;
+  background: var(--ruik-color-surface, #ffffff);
+  box-shadow: var(--ruik-shadow-sm, 0 1px 2px rgba(36, 24, 12, 0.06));
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.search-bar:focus-within {
+  border-color: var(--ruik-color-primary, #c2410c);
+  box-shadow: var(--ruik-shadow-md, 0 10px 24px -8px rgba(36, 24, 12, 0.16));
+}
+
+.search-bar__icon {
+  flex-shrink: 0;
+  color: var(--ruik-color-text-muted, #85786a);
+}
+
+.search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font: inherit;
+  font-size: 15px;
+  background: transparent;
+  color: var(--ruik-color-text, #241c14);
+}
+
+.search-bar input::placeholder {
+  color: var(--ruik-color-text-muted, #85786a);
+}
+
+/* Remove the native search-input clear/decoration in WebKit so styling stays consistent. */
+.search-bar input::-webkit-search-decoration,
+.search-bar input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.search-bar__clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: var(--ruik-color-surface-alt, #f4ede2);
+  color: var(--ruik-color-text-muted, #85786a);
+  cursor: pointer;
+}
+
+.search-bar__clear:hover {
+  color: var(--ruik-color-text, #241c14);
+}

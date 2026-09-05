@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  font-family: var(--ruik-font-sans, system-ui, -apple-system, 'Segoe UI', sans-serif);
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--ruik-color-border, #e8dfd0);
+  background: var(--ruik-color-surface, #ffffff);
+  color: var(--ruik-color-text, #241c14);
+  border-radius: var(--ruik-radius-pill, 999px);
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.chip:hover {
+  border-color: var(--ruik-color-primary, #c2410c);
+  transform: translateY(-1px);
+}
+
+.chip--active {
+  background: var(--ruik-color-primary, #c2410c);
+  border-color: var(--ruik-color-primary, #c2410c);
+  color: var(--ruik-color-on-primary, #fff8f2);
+  font-weight: 600;
+}
+
+.chip__check {
+  display: inline-flex;
+  flex-shrink: 0;
+}

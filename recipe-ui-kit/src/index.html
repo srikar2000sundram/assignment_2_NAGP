@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+    <title>recipe-ui-kit — dev preview</title>
+
+    <script type="module" src="/build/recipe-ui-kit.esm.js"></script>
+    <script nomodule src="/build/recipe-ui-kit.js"></script>
+    <style>
+      :root {
+        --ruik-color-bg: #fbf7f2;
+        --ruik-color-surface: #ffffff;
+        --ruik-color-surface-alt: #f4ede2;
+        --ruik-color-border: #e8dfd0;
+        --ruik-color-text: #241c14;
+        --ruik-color-text-muted: #85786a;
+        --ruik-color-primary: #c2410c;
+        --ruik-color-primary-hover: #9a3412;
+        --ruik-color-on-primary: #fff8f2;
+        --ruik-color-accent: #4d7c58;
+        --ruik-color-danger: #b3261e;
+        --ruik-color-focus: #c2410c;
+        --ruik-radius-sm: 8px;
+        --ruik-radius-md: 14px;
+        --ruik-radius-lg: 22px;
+        --ruik-radius-pill: 999px;
+        --ruik-shadow-sm: 0 1px 2px rgba(36, 24, 12, 0.06);
+        --ruik-shadow-md: 0 10px 24px -8px rgba(36, 24, 12, 0.16);
+        --ruik-shadow-lg: 0 24px 60px -16px rgba(36, 24, 12, 0.28);
+        --ruik-font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+        --ruik-font-sans: -apple-system, 'Segoe UI', system-ui, Roboto, sans-serif;
+      }
+      body {
+        font-family: var(--ruik-font-sans);
+        background: var(--ruik-color-bg);
+        color: var(--ruik-color-text);
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      h1 {
+        font-family: var(--ruik-font-serif);
+        font-size: 26px;
+        margin: 0;
+      }
+      h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ruik-color-text-muted);
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>recipe-ui-kit</h1>
+
+    <section>
+      <h2>recipe-ui-card</h2>
+      <div style="max-width: 220px">
+        <recipe-ui-card
+          recipe-id="52772"
+          recipe-title="Teriyaki Chicken Casserole"
+          category="Chicken"
+          image="https://www.themealdb.com/images/media/meals/wvpsxx1468256321.jpg"
+        ></recipe-ui-card>
+      </div>
+    </section>
+
+    <section>
+      <h2>recipe-ui-search-bar</h2>
+      <recipe-ui-search-bar placeholder="Search recipes…"></recipe-ui-search-bar>
+    </section>
+
+    <section>
+      <h2>recipe-ui-filter-chip-group</h2>
+      <recipe-ui-filter-chip-group id="chips"></recipe-ui-filter-chip-group>
+    </section>
+
+    <section>
+      <h2>recipe-ui-rating-badge</h2>
+      <div style="display: flex; gap: 8px">
+        <recipe-ui-rating-badge label="Easy" variant="success"></recipe-ui-rating-badge>
+        <recipe-ui-rating-badge label="Chicken" variant="info"></recipe-ui-rating-badge>
+        <recipe-ui-rating-badge label="30 min" variant="neutral"></recipe-ui-rating-badge>
+      </div>
+    </section>
+
+    <section>
+      <h2>recipe-ui-meal-slot</h2>
+      <div style="max-width: 220px">
+        <recipe-ui-meal-slot day="mon" day-label="Mon"></recipe-ui-meal-slot>
+      </div>
+    </section>
+
+    <section>
+      <h2>recipe-ui-modal-dialog</h2>
+      <button id="open-modal" type="button" style="align-self: flex-start; padding: 8px 16px">Open modal</button>
+      <recipe-ui-modal-dialog id="modal" heading="Pick a recipe">
+        <p>Modal body content goes here — typically a &lt;recipe-ui-card&gt; grid.</p>
+      </recipe-ui-modal-dialog>
+    </section>
+
+    <section>
+      <h2>recipe-ui-form</h2>
+      <recipe-ui-form mode="create"></recipe-ui-form>
+    </section>
+
+    <script type="module">
+      const chips = document.getElementById('chips');
+      chips.options = [
+        { value: 'chicken', label: 'Chicken' },
+        { value: 'seafood', label: 'Seafood' },
+        { value: 'vegetarian', label: 'Vegetarian' },
+      ];
+      chips.selected = ['chicken'];
+      chips.addEventListener('filterChange', (ev) => {
+        chips.selected = ev.detail.selected;
+      });
+
+      const modal = document.getElementById('modal');
+      document.getElementById('open-modal').addEventListener('click', () => {
+        modal.open = true;
+      });
+      modal.addEventListener('close', () => {
+        modal.open = false;
+      });
+    </script>
+  </body>
+</html>
