@@ -16,14 +16,11 @@ Assignment brief: [`Recipe_Finder_Meal_Planner_Assignment_v2.pdf`](Recipe_Finder
 
 | | |
 |---|---|
-| npm package — `@srikar_sundram/recipe-ui-kit` | [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
-| GitHub — component library | ⏳ *ready to push* — [RUNBOOK step 2a](docs/RUNBOOK.md#2a--the-component-library) |
-| GitHub — app + docs | ⏳ *ready to push* — [RUNBOOK step 2b](docs/RUNBOOK.md#2b--the-app--docs) |
-| Deployed application URL | ⏳ *ready to deploy* — [RUNBOOK step 3](docs/RUNBOOK.md#step-3--deploy-to-vercel) |
+| npm package — `@srikar_sundram/recipe-ui-kit` | ✅ [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
+| GitHub repository (both projects) | ✅ [https://github.com/srikar2000sundram/assignment_2_NAGP](https://github.com/srikar2000sundram/assignment_2_NAGP) |
+| Deployed application URL | ✅ [https://assignment-2-nagp.vercel.app](https://assignment-2-nagp.vercel.app) |
 
-The library is published. The remaining three need GitHub and Vercel
-credentials — [`docs/RUNBOOK.md`](docs/RUNBOOK.md) has the exact commands;
-fill this table in afterwards.
+All three are live.
 
 ## Quickstart
 
@@ -100,11 +97,11 @@ lint errors, and a production build in `recipe-finder-app/build/`.
 
 ## How the two projects fit together
 
-The app does **not** import the library from source. It installs it as a
-package and consumes only what that package publishes — `dist/`, `loader/`
-and whatever the `exports` map allows — which is the same surface any
-registry consumer sees. Until publication that is a locally packed
-tarball, which exercises the identical code path
+The app does **not** import the library from source. It depends on
+`@srikar_sundram/recipe-ui-kit@^0.2.0`, resolved from `registry.npmjs.org`
+(see `recipe-finder-app/package-lock.json`), and can only see what that
+package publishes — `dist/`, `loader/` and whatever the `exports` map
+allows
 ([ADR-004](docs/decisions.md#adr-004-published-package-name)).
 
 Data crosses the boundary as **props**, and facts come back as
@@ -127,5 +124,4 @@ Start with whichever matches what you need:
 | [decisions.md](docs/decisions.md) | The 12 ADRs — why each choice was made |
 | [data-model.md](docs/data-model.md) | `Recipe` shape, `localStorage` schema, referential integrity |
 | [api.md](docs/api.md) | TheMealDB endpoints, response normalization, caveats |
-| [RUNBOOK.md](docs/RUNBOOK.md) | Publish, push and deploy — the remaining commands |
-.
+| [RUNBOOK.md](docs/RUNBOOK.md) | Publish, push and deploy — the commands used to reach the state above |

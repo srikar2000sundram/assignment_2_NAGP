@@ -93,8 +93,8 @@ credentialed command — see [RUNBOOK.md](./RUNBOOK.md))
 | README with assumptions made | ✅ | [`../README.md#assumptions-made`](../README.md#assumptions-made) |
 | Starting the development server | ✅ | [getting-started.md#step-3--run-it](./getting-started.md#step-3--run-it) |
 | npm package link | ✅ | [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
-| GitHub repository link(s) | ⏳ | [RUNBOOK step 2](./RUNBOOK.md#step-2--push-both-projects-to-github) — two repos per [ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository) |
-| Deployed application URL | ⏳ | [RUNBOOK step 3](./RUNBOOK.md#step-3--deploy-to-vercel) — static build + `vercel.json` ready |
+| GitHub repository link(s) | ✅ | [https://github.com/srikar2000sundram/assignment_2_NAGP](https://github.com/srikar2000sundram/assignment_2_NAGP) — one repository per the amendment to [ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository) |
+| Deployed application URL | ✅ | [https://assignment-2-nagp.vercel.app](https://assignment-2-nagp.vercel.app) — static build on Vercel, verified: home page, all prerendered routes, and a direct hit on the client-rendered `/recipes/[id]` fallback all return 200 |
 
 ## Quality gates (not required by the PDF, held anyway)
 

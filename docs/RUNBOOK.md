@@ -1,12 +1,13 @@
 # Runbook — publish, push, deploy
 
-Three steps remain, and all three need credentials that are not on this
-machine (`npm whoami` returns `ENEEDAUTH`; the `gh` CLI is not installed).
-Everything up to the credentialed command is already done — this file is
-the exact sequence to finish.
-
-Do them in order: publishing first means the app can depend on the real
-registry version before the repo is pushed and deployed.
+**All three steps below are done.** The package is published, the repo is
+pushed, and the app is deployed — see the **Links** table in
+[`../README.md`](../README.md) for the live URLs. This file is kept as a
+record of the exact commands used and the order they had to run in
+(publishing first, so the app could depend on the real registry version
+before the repo was pushed and deployed), and as the reference for cutting
+a future release — see *Releasing a later version of the library* at the
+end.
 
 ## Before you start — one value to fill in
 
@@ -61,46 +62,32 @@ Record the package URL —
 
 ---
 
-## Step 2 — push both projects to GitHub
+## Step 2 — push to GitHub
 
-Two repositories, per
-[ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository).
-Create both as **empty** repos on GitHub first (no README, no .gitignore —
-this repo already has them).
-
-### 2a — the component library
-
-It already has a local git repo with one commit from the Stencil starter,
-so this adds the work on top:
-
-```sh
-cd recipe-ui-kit
-git add -A
-git commit -m "Recipe UI kit v0.2.0: 7 components, 73 tests, changelog"
-git branch -M main
-git remote add origin https://github.com/<you>/recipe-ui-kit.git
-git push -u origin main
-git tag v0.2.0 && git push --tags     # tag the published version
-```
-
-### 2b — the app + docs
-
-This tree is already initialised and committed locally (see
-`git log --oneline`), with `recipe-ui-kit/` excluded via `.gitignore` so
-the library stays its own repo:
+**What actually happened here differs from the original plan.** This step
+was originally written for two repositories, per ADR-001's initial
+decision. By the time of pushing, that had been superseded — see the
+amendment on
+[ADR-001](./decisions.md#adr-001-project-layout--two-sibling-projects-one-repository) —
+because the deliverables ask for a single "Link to github repository". So
+`recipe-ui-kit/` was folded into this tree as a plain subdirectory (its
+separate git history was not preserved) and everything went to one repo:
 
 ```sh
+cd recipe-ui-kit && rm -rf .git       # drop its independent history
 cd ..                                  # ASSIGNMENT_2/
-git remote add origin https://github.com/<you>/recipe-finder-app.git
+git add -A
+git commit -m "Bring the component library into this repository"
+git remote add origin https://github.com/<you>/<your-repo>.git
 git push -u origin main
 ```
 
-Record both URLs in the **Links** table in [`../README.md`](../README.md).
+Record the URL in the **Links** table in [`../README.md`](../README.md).
 
-> Note: because the two repos are independent, a fresh clone of the app
-> repo cannot resolve a `file:../recipe-ui-kit/...tgz` dependency. That is
-> exactly why step 1 comes first — after it, the app depends on `^0.2.0`
-> from the registry and clones cleanly on its own.
+> The two-repo concern this step was originally guarding against — a fresh
+> clone of the app being unable to resolve a `file:../recipe-ui-kit/...tgz`
+> dependency — doesn't apply once the library is on the registry. The app
+> depends on `^0.2.0` from npm regardless of how many repos it lives in.
 
 ---
 
@@ -140,6 +127,16 @@ vercel --prod     # production deploy
 Record the resulting URL in the **Links** table in
 [`../README.md`](../README.md).
 
+> The first deploy attempt here failed with "No Output Directory named
+> dist found", because this project has no `svelte.config.js` (the adapter
+> is configured inside `vite.config.ts` instead), so Vercel's framework
+> detection fell back to generic Vite and guessed `dist` instead of the
+> `build/` folder `adapter-static` actually writes to. The fix, already in
+> `vercel.json`, is `"outputDirectory": "build"` — see
+> [ADR-011](./decisions.md#adr-011-adapter-static-not-adapter-vercel) for
+> the full explanation. If you ever remove or regenerate `vercel.json`,
+> keep that key.
+
 ### After deploying, check
 
 - `/` loads and the browse grid populates (proves TheMealDB is reachable
@@ -154,15 +151,15 @@ Record the resulting URL in the **Links** table in
 
 ## Finishing the deliverables
 
-After all three steps, fill in the four rows in
-[`../README.md`](../README.md)'s **Links** table and flip the four ⏳ rows in
-[requirements-traceability.md](./requirements-traceability.md) to ✅:
+After all three steps, the three rows in [`../README.md`](../README.md)'s
+**Links** table and the corresponding rows in
+[requirements-traceability.md](./requirements-traceability.md) get filled
+in / flipped to ✅:
 
 | Deliverable | Value |
 |---|---|
 | npm package link | `https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit` |
-| GitHub — component library | `https://github.com/<you>/recipe-ui-kit` |
-| GitHub — app | `https://github.com/<you>/recipe-finder-app` |
+| GitHub repository | `https://github.com/<you>/<your-repo>` |
 | Deployed application URL | the Vercel URL |
 
 ## Releasing a later version of the library
