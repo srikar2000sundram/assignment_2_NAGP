@@ -16,14 +16,14 @@ Assignment brief: [`Recipe_Finder_Meal_Planner_Assignment_v2.pdf`](Recipe_Finder
 
 | | |
 |---|---|
-| npm package — `@srikar_sundram/recipe-ui-kit` | ⏳ *ready to publish* — [RUNBOOK step 1](docs/RUNBOOK.md#step-1--publish-the-component-library-to-npm) |
+| npm package — `@srikar_sundram/recipe-ui-kit` | ✅ [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
 | GitHub — component library | ⏳ *ready to push* — [RUNBOOK step 2a](docs/RUNBOOK.md#2a--the-component-library) |
 | GitHub — app + docs | ⏳ *ready to push* — [RUNBOOK step 2b](docs/RUNBOOK.md#2b--the-app--docs) |
 | Deployed application URL | ⏳ *ready to deploy* — [RUNBOOK step 3](docs/RUNBOOK.md#step-3--deploy-to-vercel) |
 
-Those four need npm/GitHub/Vercel credentials, so they are the only things
-left. [`docs/RUNBOOK.md`](docs/RUNBOOK.md) has the exact commands; fill this
-table in afterwards.
+The library is published. The remaining three need GitHub and Vercel
+credentials — [`docs/RUNBOOK.md`](docs/RUNBOOK.md) has the exact commands;
+fill this table in afterwards.
 
 ## Quickstart
 

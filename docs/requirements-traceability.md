@@ -70,7 +70,7 @@ credentialed command — see [RUNBOOK.md](./RUNBOOK.md))
 | Requirement | Status | Evidence |
 |---|---|---|
 | Package the library as a reusable library | ✅ | `kit/package.json` — `exports` map, `files: [dist/, loader/, CHANGELOG.md]`, `dist` + `dist-custom-elements` + `loader` output targets |
-| Publish to npm under an appropriate name | ⏳ | Name `recipe-ui-kit` verified available; `publishConfig.access: public`. Needs `npm login && npm publish` — [RUNBOOK step 1](./RUNBOOK.md#step-1--publish-the-component-library-to-npm) |
+| Publish to npm under an appropriate name | ✅ | Published as **`@srikar_sundram/recipe-ui-kit@0.2.0`**, public — [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit). Scoped because the unscoped name was claimed by an unrelated package before release ([ADR-004](./decisions.md#adr-004-published-package-name)) |
 | Follow versioning best practices | ✅ | Semver at **0.2.0**, bump policy in [architecture.md §7](./architecture.md#7-versioning), [`kit/CHANGELOG.md`](../recipe-ui-kit/CHANGELOG.md), `prepublishOnly` guard against shipping a stale build |
 | Consume the published package, not source | ✅ (mechanism) / ⏳ (registry) | The app installs a packed **tarball**, so it can only see `dist/`+`loader/` — the exact surface a registry consumer sees, never `.ts` source. Becomes `"^0.2.0"` at RUNBOOK step 1. [ADR-004](./decisions.md#adr-004-published-package-name) |
 
@@ -92,7 +92,7 @@ credentialed command — see [RUNBOOK.md](./RUNBOOK.md))
 | README with setup instructions | ✅ | [`../README.md`](../README.md) + [getting-started.md](./getting-started.md) |
 | README with assumptions made | ✅ | [`../README.md#assumptions-made`](../README.md#assumptions-made) |
 | Starting the development server | ✅ | [getting-started.md#step-3--run-it](./getting-started.md#step-3--run-it) |
-| npm package link | ⏳ | [RUNBOOK step 1](./RUNBOOK.md#step-1--publish-the-component-library-to-npm) |
+| npm package link | ✅ | [https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit](https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit) |
 | GitHub repository link(s) | ⏳ | [RUNBOOK step 2](./RUNBOOK.md#step-2--push-both-projects-to-github) — two repos per [ADR-001](./decisions.md#adr-001-two-sibling-projects-instead-of-a-monorepo) |
 | Deployed application URL | ⏳ | [RUNBOOK step 3](./RUNBOOK.md#step-3--deploy-to-vercel) — static build + `vercel.json` ready |
 
