@@ -12,17 +12,6 @@ export default defineConfig({
 		port: 5174,
 		strictPort: true
 	},
-	optimizeDeps: {
-		// recipe-ui-kit's loader does its own runtime dynamic import() of
-		// per-component lazy chunks (Stencil's lazy-loading model). Vite's
-		// esbuild-based dep scanner tries to follow and pre-bundle those too,
-		// which produces stale/missing chunk references in node_modules/.vite/deps
-		// whenever the package's internal chunk hashes change (e.g. after
-		// rebuilding+repacking the tarball). Excluding it avoids pre-bundling
-		// it altogether — the loader is only ever imported lazily in the
-		// browser (see src/routes/+layout.svelte), so it doesn't need to be.
-		exclude: ['@srikar_sundram/recipe-ui-kit', '@srikar_sundram/recipe-ui-kit/loader']
-	},
 	plugins: [
 		sveltekit({
 			compilerOptions: {

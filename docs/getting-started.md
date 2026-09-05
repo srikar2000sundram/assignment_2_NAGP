@@ -115,20 +115,24 @@ type/lint errors, and a build written to `build/`.
 
 ## Troubleshooting
 
-### Dev server 404s on a file like `recipe-ui-card_7.entry.js`
+### Recipe cards / search bar / meal slots render as empty tags
 
-You rebuilt and repacked the library while the dev server was running.
-Stencil content-hashes its lazy chunk filenames, but a tarball reinstall
-does not bump a version, so Vite keeps serving its stale cache.
+If `recipe-ui-*` elements show up in the DOM but render nothing, the app is
+almost certainly importing `recipe-ui-kit`'s lazy loader instead of the
+`dist-custom-elements` modules — see
+[ADR-013](./decisions.md#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly)
+for the full bug. Check `src/routes/+layout.svelte`: it should import each
+component individually (`recipe-ui-kit/recipe-ui-card`, etc.), never
+`recipe-ui-kit/loader`. If you see the loader import, that's a regression.
+
+### Dev server cache seems stale after rebuilding the library
+
+If you rebuild and repack the library while the dev server is running, Vite
+can keep serving an old cached copy:
 
 ```sh
 rm -rf node_modules/.vite && npm run dev
 ```
-
-The library is already excluded from Vite's pre-bundler to prevent the
-worst of this ([ADR-008](./decisions.md#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)),
-but excluding it does not make Vite aware that a tarball's *contents*
-changed underneath it.
 
 ### `Cannot find native binding` / `@rolldown/binding-...`
 

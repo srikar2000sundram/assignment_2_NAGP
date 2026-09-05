@@ -178,24 +178,36 @@ sequenceDiagram
 
 ```ts
 onMount(async () => {
-	const { defineCustomElements } = await import('@srikar_sundram/recipe-ui-kit/loader');
-	defineCustomElements();
+	await Promise.all([
+		import('@srikar_sundram/recipe-ui-kit/recipe-ui-card'),
+		import('@srikar_sundram/recipe-ui-kit/recipe-ui-search-bar'),
+		// ...one per component
+	]);
 });
 ```
 
-Three things about that are deliberate:
+Two things about that are deliberate:
 
 - **`onMount`, not module scope** — custom elements need a real `window`,
   and SvelteKit renders on the server first.
-- **`@srikar_sundram/recipe-ui-kit/loader`, not `recipe-ui-kit`** — the loader is Stencil's
-  lazy entry point, so each component's code is only fetched when a page
-  actually uses that tag.
-- **Once, in the root layout** — every route can then use the tags as plain
-  HTML with no per-route imports.
+- **Each component's own module, not the package's lazy loader** — importing
+  `recipe-ui-kit/recipe-ui-card` runs `customElements.define()` as a plain
+  side effect, with no runtime-computed import path inside it. The lazy
+  loader (`recipe-ui-kit/loader` + `defineCustomElements()`) looks like the
+  obvious choice, but its internal per-component chunk is fetched via a
+  path built from a runtime variable, which Vite's production bundler
+  cannot statically analyze — so that file never made it into a real build
+  at all, and every custom element silently failed to render. See
+  [ADR-013](./decisions.md#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly)
+  for the full story; it also removed the
+  [ADR-008](./decisions.md#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)
+  workaround, which existed only to paper over a symptom of the same
+  underlying loader.
 
-That lazy loader is also why `recipe-ui-kit` is excluded from Vite's
-dependency pre-bundler — see
-[ADR-008](./decisions.md#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler).
+The trade-off: all seven components now load together at startup rather than
+per-route. At roughly 30KB total, that costs nothing worth avoiding — it is
+the same code the lazy model would have loaded anyway, minus the broken
+indirection.
 
 ### Component contracts
 

@@ -253,6 +253,11 @@ theming API to version.
 
 ## ADR-008: `recipe-ui-kit` excluded from Vite's dependency pre-bundler
 
+**Superseded — the app no longer imports the lazy loader at all, so this
+workaround no longer applies. Kept for the history; see
+[ADR-013](#adr-013-drop-the-lazy-loader-import-dist-custom-elements-modules-directly)
+for what replaced it and why.**
+
 Less a design choice than a bug I had to work around, but worth writing down
 because it'll bite again if the fix ever gets removed.
 
@@ -424,3 +429,97 @@ cares. So the app layer is what catches whitespace-only input, the character
 limit, and an ingredient list where every row has a measure but no name. The
 seam between the two is where the interesting test cases live, and
 [testing.md](./testing.md) calls it out explicitly.
+
+---
+
+## ADR-013: Drop the lazy loader, import dist-custom-elements modules directly
+
+This is the most serious bug the app shipped with, and it went undetected
+through every deploy up to this point, because everything I used to verify
+the app was `curl` against the server-rendered HTML shell. That checks the
+page loaded; it says nothing about whether the JavaScript inside it actually
+works once a real browser runs it. It took the app being genuinely unusable
+in someone's hands to surface this.
+
+The symptom: discovery, browse, and the meal plan all appeared broken, while
+adding a recipe looked fine. The cause turned out to be one thing, not
+several: **every single `recipe-ui-kit` custom element silently failed to
+render its implementation**, because the file it needed was never present in
+the deployed output at all.
+
+`recipe-finder-app/src/routes/+layout.svelte` registered components through
+`@srikar_sundram/recipe-ui-kit/loader`, calling `defineCustomElements()` once
+at startup. That is the standard way to consume a Stencil package, and it
+works fine in Stencil's own dev server and in plain script-tag usage. What it
+does internally is bundle all seven components into one shared chunk
+(`recipe-ui-card_7.entry.js`) and fetch it lazily, at runtime, via
+`import(\`./${bundleId}.entry.js\`)` — a module specifier built from a
+runtime variable, not a literal string.
+
+Vite's production bundler (Rollup) cannot statically analyze a
+template-interpolated import. It cannot know what `bundleId` will be at
+build time, so it has no way to know that file needs to be included in the
+build at all, and it silently leaves the `import()` call as-is rather than
+erroring. The result: `recipe-ui-card_7.entry.js` genuinely does not exist
+anywhere in `build/` after `npm run build`. In the browser, every component's
+lazy-load request 404s, Stencil logs the failure to the console and gives up,
+and the custom element just sits there empty. The surrounding Svelte-rendered
+markup (nav, headings, the "Your Recipes" heading via `{#each}`) still shows,
+because none of that depends on Stencil — which is exactly why the bug read
+as "some things work, some don't" rather than "everything is broken".
+
+This bug is not specific to Vercel. It affects `npm run build` +
+`npm run preview` on any machine, and would have affected `npm run dev` too
+once Vite's dependency pre-bundler cache went stale (see the superseded
+[ADR-008](#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)).
+Chasing it down on the deployed Vercel URL was what finally forced the issue,
+because that was the first time anyone actually clicked through the running
+app rather than checking that a page returned 200.
+
+The fix: `recipe-ui-kit` also ships a `dist-custom-elements` build (already
+configured in `stencil.config.ts`, so no library change or republish was
+needed), where each component is its own plain ES module —
+`recipe-ui-kit/recipe-ui-card`, `recipe-ui-kit/recipe-ui-form`, and so on.
+Each one calls `customElements.define()` as a straightforward side effect of
+being imported, with **no runtime-computed path anywhere in it** — it's a
+static `import` from a sibling file, the same as any other module. `+layout.svelte`
+now does:
+
+```ts
+onMount(async () => {
+	await Promise.all([
+		import('@srikar_sundram/recipe-ui-kit/recipe-ui-card'),
+		import('@srikar_sundram/recipe-ui-kit/recipe-ui-search-bar'),
+		// ...one per component
+	]);
+});
+```
+
+Each of those is a literal string, so Rollup can see exactly what it needs,
+code-split it into a real, correctly-hashed chunk under
+`_app/immutable/chunks/`, and reference it with a normal relative import that
+resolves to wherever the chunk actually lands. Verified directly against the
+build output: all seven components now exist as real chunks, every
+`customElements.define` call is present, and there is not one remaining
+`.entry.js` reference anywhere in `build/`.
+
+The cost is that "lazy" now means something more modest: all seven
+components load together on first paint instead of per-route, since they are
+requested up front in the root layout rather than as each route needs them.
+Given the whole library is on the order of 30KB, that is not a real trade —
+it is the same code Stencil's own lazy model would have loaded anyway, just
+without the broken indirection in between.
+
+The `optimizeDeps.exclude` workaround from
+[ADR-008](#adr-008-recipe-ui-kit-excluded-from-vites-dependency-pre-bundler)
+is removed along with it, since it existed specifically to paper over the
+lazy loader's dev-mode staleness — a problem that cannot occur once nothing
+imports the lazy loader at all.
+
+The honest lesson here is about verification, not just this one bug. Every
+check I ran up to this point — `svelte-check`, ESLint, Vitest, and `curl`
+against both the local server and the deployed URL — passed the entire time
+this was broken, because none of them render the app and click through it.
+[testing.md](./testing.md) already listed the absence of end-to-end route
+tests as a known gap; this is the concrete failure that gap allows through,
+not a hypothetical one.
