@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateRecipeForm, isRecipeFormValid } from './recipe';
-import type { RecipeFormValue } from 'recipe-ui-kit';
+import type { RecipeFormValue } from '@srikar_sundram/recipe-ui-kit';
 
 function form(overrides: Partial<RecipeFormValue> = {}): RecipeFormValue {
 	return {

@@ -5,7 +5,7 @@
  */
 import { readStorage, writeStorage } from './storage';
 import type { Recipe } from '$lib/types/recipe';
-import type { RecipeFormValue } from 'recipe-ui-kit';
+import type { RecipeFormValue } from '@srikar_sundram/recipe-ui-kit';
 import { favorites } from './favorites.svelte';
 import { mealPlan } from './mealPlan.svelte';
 

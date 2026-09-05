@@ -40,7 +40,7 @@ flowchart LR
 The dotted arrow is the part the assignment cares most about: the app does
 not import the library from source. It installs it as a published package
 and consumes only what that package actually exposes — see
-[decisions.md ADR-004](./decisions.md#adr-004-published-package-name--recipe-ui-kit-unscoped).
+[decisions.md ADR-004](./decisions.md#adr-004-published-package-name).
 
 **There is deliberately no third box.** No backend, no database, no auth
 server — see [ADR-005](./decisions.md#adr-005-state--persistence--no-backend-browser-storage-only).
@@ -178,7 +178,7 @@ sequenceDiagram
 
 ```ts
 onMount(async () => {
-	const { defineCustomElements } = await import('recipe-ui-kit/loader');
+	const { defineCustomElements } = await import('@srikar_sundram/recipe-ui-kit/loader');
 	defineCustomElements();
 });
 ```
@@ -187,7 +187,7 @@ Three things about that are deliberate:
 
 - **`onMount`, not module scope** — custom elements need a real `window`,
   and SvelteKit renders on the server first.
-- **`recipe-ui-kit/loader`, not `recipe-ui-kit`** — the loader is Stencil's
+- **`@srikar_sundram/recipe-ui-kit/loader`, not `recipe-ui-kit`** — the loader is Stencil's
   lazy entry point, so each component's code is only fetched when a page
   actually uses that tag.
 - **Once, in the root layout** — every route can then use the tags as plain

@@ -72,7 +72,7 @@ credentialed command — see [RUNBOOK.md](./RUNBOOK.md))
 | Package the library as a reusable library | ✅ | `kit/package.json` — `exports` map, `files: [dist/, loader/, CHANGELOG.md]`, `dist` + `dist-custom-elements` + `loader` output targets |
 | Publish to npm under an appropriate name | ⏳ | Name `recipe-ui-kit` verified available; `publishConfig.access: public`. Needs `npm login && npm publish` — [RUNBOOK step 1](./RUNBOOK.md#step-1--publish-the-component-library-to-npm) |
 | Follow versioning best practices | ✅ | Semver at **0.2.0**, bump policy in [architecture.md §7](./architecture.md#7-versioning), [`kit/CHANGELOG.md`](../recipe-ui-kit/CHANGELOG.md), `prepublishOnly` guard against shipping a stale build |
-| Consume the published package, not source | ✅ (mechanism) / ⏳ (registry) | The app installs a packed **tarball**, so it can only see `dist/`+`loader/` — the exact surface a registry consumer sees, never `.ts` source. Becomes `"^0.2.0"` at RUNBOOK step 1. [ADR-004](./decisions.md#adr-004-published-package-name--recipe-ui-kit-unscoped) |
+| Consume the published package, not source | ✅ (mechanism) / ⏳ (registry) | The app installs a packed **tarball**, so it can only see `dist/`+`loader/` — the exact surface a registry consumer sees, never `.ts` source. Becomes `"^0.2.0"` at RUNBOOK step 1. [ADR-004](./decisions.md#adr-004-published-package-name) |
 
 ## Integration
 

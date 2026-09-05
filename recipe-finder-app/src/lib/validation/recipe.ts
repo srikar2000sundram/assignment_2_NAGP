@@ -5,7 +5,7 @@
  * only collects input, this app owns the business rules. Rules mirror
  * docs/data-model.md#user-recipes-store.
  */
-import type { RecipeFormValue, RecipeFormErrors } from 'recipe-ui-kit';
+import type { RecipeFormValue, RecipeFormErrors } from '@srikar_sundram/recipe-ui-kit';
 
 export function validateRecipeForm(value: RecipeFormValue): RecipeFormErrors {
 	const errors: RecipeFormErrors = {};

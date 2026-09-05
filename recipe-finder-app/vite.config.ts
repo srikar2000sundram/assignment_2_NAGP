@@ -21,7 +21,7 @@ export default defineConfig({
 		// rebuilding+repacking the tarball). Excluding it avoids pre-bundling
 		// it altogether — the loader is only ever imported lazily in the
 		// browser (see src/routes/+layout.svelte), so it doesn't need to be.
-		exclude: ['recipe-ui-kit', 'recipe-ui-kit/loader']
+		exclude: ['@srikar_sundram/recipe-ui-kit', '@srikar_sundram/recipe-ui-kit/loader']
 	},
 	plugins: [
 		sveltekit({

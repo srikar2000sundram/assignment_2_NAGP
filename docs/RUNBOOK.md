@@ -22,50 +22,42 @@ sed -i 's/<YOUR-GITHUB-USERNAME>/your-actual-username/g' package.json
 
 ## Step 1 — publish the component library to npm
 
-The name `recipe-ui-kit` was checked as available (`npm view recipe-ui-kit`
-→ 404) and is configured unscoped and public. If someone has taken it since,
-see *If the name is taken* below.
+The package publishes as **`@srikar_sundram/recipe-ui-kit`**, scoped to the
+npm account. The unscoped `recipe-ui-kit` was claimed by someone else on
+2026-08-28, before this was published — see the amendment on
+[ADR-004](./decisions.md#adr-004-published-package-name).
 
 ```sh
 cd recipe-ui-kit
-npm login                 # opens a browser
-npm whoami                # confirm you are logged in
-npm publish               # prepublishOnly rebuilds dist/ automatically
+npm whoami                       # must print your username first
+npm publish --access public      # --access public is required for a scoped package
 ```
+
+`prepublishOnly` rebuilds `dist/` automatically, so a stale build cannot
+ship. If 2FA is enabled you will be asked for an OTP.
+
+> If `npm login` crashes with `Exit handler never called!`, that is a known
+> npm CLI bug in the browser handshake. Use `npm login --auth-type=legacy`
+> instead, or set a granular access token:
+> `npm config set //registry.npmjs.org/:_authToken=<token>`.
 
 Then repoint the app from the local tarball at the registry version:
 
 ```sh
 cd ../recipe-finder-app
-npm install recipe-ui-kit@^0.2.0
+npm install @srikar_sundram/recipe-ui-kit@^0.2.0
 rm -rf node_modules/.vite            # clear Vite's stale dep cache
-npm run dev                          # sanity-check it still runs
+npm run build                        # confirm it still builds
 ```
 
-`package.json` should now read `"recipe-ui-kit": "^0.2.0"` instead of the
-`file:` tarball path. Nothing else changes — the app was written against
-the published surface all along, which is the entire point of
-[ADR-004](./decisions.md#adr-004-published-package-name--recipe-ui-kit-unscoped).
+`package.json` should now read `"@srikar_sundram/recipe-ui-kit": "^0.2.0"`
+instead of the `file:` tarball path. Nothing else changes — the app was
+written against the published surface all along, which is the point of
+[ADR-004](./decisions.md#adr-004-published-package-name).
 
-Record the package URL — `https://www.npmjs.com/package/recipe-ui-kit` — in
-the **Links** table in [`../README.md`](../README.md).
-
-**If the name is taken**, publish under your npm scope instead:
-
-```sh
-cd recipe-ui-kit
-npm pkg set name="@your-npm-user/recipe-ui-kit"
-npm publish --access public
-```
-
-Then update the app's dependency name to match, and the import specifiers
-in `app/src/routes/+layout.svelte` (`recipe-ui-kit/loader`) plus the six
-`from 'recipe-ui-kit'` type imports:
-
-```sh
-cd ../recipe-finder-app
-grep -rln "recipe-ui-kit" src/    # the files needing the new name
-```
+Record the package URL —
+`https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit` — in the
+**Links** table in [`../README.md`](../README.md).
 
 ---
 
@@ -168,7 +160,7 @@ After all three steps, fill in the four rows in
 
 | Deliverable | Value |
 |---|---|
-| npm package link | `https://www.npmjs.com/package/recipe-ui-kit` |
+| npm package link | `https://www.npmjs.com/package/@srikar_sundram/recipe-ui-kit` |
 | GitHub — component library | `https://github.com/<you>/recipe-ui-kit` |
 | GitHub — app | `https://github.com/<you>/recipe-finder-app` |
 | Deployed application URL | the Vercel URL |
@@ -184,5 +176,5 @@ npm publish
 git push && git push --tags
 
 cd ../recipe-finder-app
-npm install recipe-ui-kit@latest
+npm install @srikar_sundram/recipe-ui-kit@latest
 ```

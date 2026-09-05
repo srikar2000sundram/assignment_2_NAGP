@@ -11,7 +11,7 @@
 	// route can use the tags directly. Loaded from the *published* package's
 	// lazy-loader entry point, not from source — see docs/decisions.md ADR-004.
 	onMount(async () => {
-		const { defineCustomElements } = await import('recipe-ui-kit/loader');
+		const { defineCustomElements } = await import('@srikar_sundram/recipe-ui-kit/loader');
 		defineCustomElements();
 	});
 

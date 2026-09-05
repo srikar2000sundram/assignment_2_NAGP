@@ -39,6 +39,6 @@
 		"vitest-browser-svelte": "^2.1.1"
 	},
 	"dependencies": {
-		"recipe-ui-kit": "file:../recipe-ui-kit/recipe-ui-kit-0.2.0.tgz"
+		"@srikar_sundram/recipe-ui-kit": "file:../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz"
 	}
 }

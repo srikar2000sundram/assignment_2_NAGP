@@ -15,7 +15,7 @@
 	import { favorites } from '$lib/stores/favorites.svelte';
 	import { userRecipes } from '$lib/stores/userRecipes.svelte';
 	import type { Recipe } from '$lib/types/recipe';
-	import type { FilterOption } from 'recipe-ui-kit';
+	import type { FilterOption } from '@srikar_sundram/recipe-ui-kit';
 
 	let query = $state('');
 	let selectedCategories = $state<string[]>([]);

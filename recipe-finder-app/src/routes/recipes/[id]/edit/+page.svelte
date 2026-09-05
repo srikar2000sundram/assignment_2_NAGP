@@ -4,7 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { userRecipes } from '$lib/stores/userRecipes.svelte';
 	import { validateRecipeForm, isRecipeFormValid } from '$lib/validation/recipe';
-	import type { RecipeFormValue, RecipeFormErrors } from 'recipe-ui-kit';
+	import type { RecipeFormValue, RecipeFormErrors } from '@srikar_sundram/recipe-ui-kit';
 
 	let errors = $state<RecipeFormErrors>({});
 	let recipe = $derived(page.params.id ? userRecipes.get(page.params.id) : undefined);

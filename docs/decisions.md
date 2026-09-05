@@ -31,7 +31,8 @@ independent projects map onto that 1:1 instead of me having to explain why
 one repo produces two deliverables.
 
 The cost of this is that until `recipe-ui-kit` is actually published, the
-app can't just `npm install recipe-ui-kit` and have it work. I solved that
+app can't just `npm install @srikar_sundram/recipe-ui-kit` and have it
+work. I solved that
 with a `npm pack` + local tarball install instead of a workspace link or
 `npm link` — more on that under ADR-004, since it's really the same
 problem from the other side.
@@ -79,7 +80,10 @@ Node. Not a hard requirement, just the path of least surprise.
 
 ---
 
-## ADR-004: Published package name — `recipe-ui-kit` (unscoped)
+## ADR-004: Published package name
+
+**Originally decided as unscoped `recipe-ui-kit`; superseded at publish
+time — see the amendment at the end of this entry.**
 
 Before I put the name anywhere — configs, docs, install instructions — I
 checked whether it was actually free on the registry:
@@ -106,6 +110,39 @@ version range and drop the pack step.
 Versioning from here follows plain semver starting at `0.1.0` — the bump
 policy is written out in [architecture.md](./architecture.md#7-versioning)
 so I don't have to re-decide it every time a component's contract changes.
+
+
+### Amendment — the unscoped name was taken before I published
+
+The reasoning above held right up until it didn't. When I actually came to
+publish, `npm view recipe-ui-kit` returned **1.0.1**, not a 404: someone
+else had created a package under that name on 2026-08-28, in the window
+between my availability check and my publish. `npm publish` would have
+failed with a 403, and rightly so — it wasn't my name to take.
+
+So the library publishes as **`@srikar_sundram/recipe-ui-kit`**, scoped to
+my npm account. The alternatives were other unscoped names that happened to
+still be free (`recipe-finder-ui-kit`, `recipe-planner-ui-kit`), and I
+passed on them for the same reason this problem happened in the first
+place: an unscoped name is a global claim on a shared namespace, and being
+free *today* is not a property you can rely on tomorrow. A scoped name
+cannot be taken by anyone else, ever.
+
+What this cost, concretely: the package name appears in module specifiers,
+so the rename touched the dependency entry, ten import sites in the app,
+`optimizeDeps.exclude` in `vite.config.ts`, and the install instructions
+throughout these docs. That is the honest price of the original decision —
+and it is exactly why the "reads cleaner in install instructions" argument
+above was too thin to carry the choice on its own. Scoped is the right
+default for anything that isn't a deliberately-claimed public name, and the
+cosmetics of `@user/pkg` versus `pkg` are not worth a namespace race.
+
+What did **not** change is anything architectural. The consumption
+mechanism, the tarball-versus-registry story below, and every prop/event
+contract are identical; only the string that names the package moved. The
+directory is still `recipe-ui-kit/`, and the custom-element tags are still
+`<recipe-ui-card>` and friends — Stencil's tag names come from the
+components, not from the package name.
 
 ---
 
@@ -207,7 +244,7 @@ After rebuilding and repacking `recipe-ui-kit` a few times during
 development, the app's dev server started 404ing on specific files like
 `recipe-ui-card_6.entry.js`, with Vite's own error message pointing
 straight at the fix: "Try adding it to `optimizeDeps.exclude`." What's
-actually happening: `recipe-ui-kit/loader` does its own runtime `import()`
+actually happening: `@srikar_sundram/recipe-ui-kit/loader` does its own runtime `import()`
 of per-component lazy chunks — that's the entire point of Stencil's
 lazy-loading model. Vite's dependency scanner tries to follow those
 dynamic imports and pre-bundle them too, and it caches what it finds under
@@ -218,7 +255,7 @@ number, so Vite never gets a signal that anything changed and keeps
 serving its stale cache.
 
 The fix is one line in `vite.config.ts`:
-`optimizeDeps.exclude: ['recipe-ui-kit', 'recipe-ui-kit/loader']`. That's
+`optimizeDeps.exclude: ['recipe-ui-kit', '@srikar_sundram/recipe-ui-kit/loader']`. That's
 safe here specifically because the package is only ever imported lazily,
 inside `onMount`, in the browser — it never needs to be part of Vite's
 eager module graph in the first place.

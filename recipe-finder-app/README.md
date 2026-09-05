@@ -25,7 +25,7 @@ npm install
 This app depends on `recipe-ui-kit` as a regular npm dependency — never as a
 source import. Until it's published, `package.json` points at a locally
 packed tarball, which exposes exactly the same surface a registry install
-would ([ADR-004](../docs/decisions.md#adr-004-published-package-name--recipe-ui-kit-unscoped)).
+would ([ADR-004](../docs/decisions.md#adr-004-published-package-name)).
 Both dependency modes, and the rebuild loop for when you change the library,
 are in [`../docs/getting-started.md`](../docs/getting-started.md).
 

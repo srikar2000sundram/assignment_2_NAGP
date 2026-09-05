@@ -10,7 +10,7 @@
 		type Recipe,
 		type RecipeRef
 	} from '$lib/types/recipe';
-	import type { MealSlotRecipe } from 'recipe-ui-kit';
+	import type { MealSlotRecipe } from '@srikar_sundram/recipe-ui-kit';
 
 	let resolvedSlots = $state<Record<Weekday, MealSlotRecipe | null>>(
 		WEEKDAYS.reduce(

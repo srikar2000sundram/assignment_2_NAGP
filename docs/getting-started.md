@@ -23,14 +23,14 @@ there are two supported dependency modes:
 
 | Mode | `recipe-finder-app/package.json` says | Use when |
 |---|---|---|
-| **Local tarball** (current) | `"recipe-ui-kit": "file:../recipe-ui-kit/recipe-ui-kit-0.2.0.tgz"` | Developing both projects side by side, or the package is not published yet |
-| **Published** | `"recipe-ui-kit": "^0.2.0"` | After `npm publish` — see [RUNBOOK.md](./RUNBOOK.md) |
+| **Local tarball** (current) | `"@srikar_sundram/recipe-ui-kit": "file:../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz"` | Developing both projects side by side, or the package is not published yet |
+| **Published** | `"@srikar_sundram/recipe-ui-kit": "^0.2.0"` | After `npm publish` — see [RUNBOOK.md](./RUNBOOK.md) |
 
 Both modes exercise the same code path: a tarball install only exposes what
 the package actually publishes (`dist/`, `loader/`, and whatever the
 `exports` map allows), never the raw `.ts` source. So if something would
 break for a real consumer, it breaks here too
-([ADR-004](./decisions.md#adr-004-published-package-name--recipe-ui-kit-unscoped)).
+([ADR-004](./decisions.md#adr-004-published-package-name)).
 
 ## Setup
 
@@ -40,7 +40,7 @@ break for a real consumer, it breaks here too
 cd recipe-ui-kit
 npm install
 npm run build          # compiles dist/ + loader/
-npm pack               # produces recipe-ui-kit-0.2.0.tgz
+npm pack               # produces srikar_sundram-recipe-ui-kit-0.2.0.tgz
 ```
 
 ### Step 2 — install the app against that tarball
@@ -54,7 +54,7 @@ If you rebuilt the library at a different version, point the app at it
 explicitly:
 
 ```sh
-npm install ../recipe-ui-kit/recipe-ui-kit-0.2.0.tgz
+npm install ../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz
 ```
 
 ### Step 3 — run it
@@ -162,7 +162,7 @@ alone changes nothing. The full loop is:
 
 ```sh
 cd recipe-ui-kit && npm run build && npm pack
-cd ../recipe-finder-app && npm install ../recipe-ui-kit/recipe-ui-kit-0.2.0.tgz
+cd ../recipe-finder-app && npm install ../recipe-ui-kit/srikar_sundram-recipe-ui-kit-0.2.0.tgz
 rm -rf node_modules/.vite && npm run dev
 ```
 

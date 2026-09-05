@@ -16,7 +16,7 @@ Assignment brief: [`Recipe_Finder_Meal_Planner_Assignment_v2.pdf`](Recipe_Finder
 
 | | |
 |---|---|
-| npm package — `recipe-ui-kit` | ⏳ *ready to publish* — [RUNBOOK step 1](docs/RUNBOOK.md#step-1--publish-the-component-library-to-npm) |
+| npm package — `@srikar_sundram/recipe-ui-kit` | ⏳ *ready to publish* — [RUNBOOK step 1](docs/RUNBOOK.md#step-1--publish-the-component-library-to-npm) |
 | GitHub — component library | ⏳ *ready to push* — [RUNBOOK step 2a](docs/RUNBOOK.md#2a--the-component-library) |
 | GitHub — app + docs | ⏳ *ready to push* — [RUNBOOK step 2b](docs/RUNBOOK.md#2b--the-app--docs) |
 | Deployed application URL | ⏳ *ready to deploy* — [RUNBOOK step 3](docs/RUNBOOK.md#step-3--deploy-to-vercel) |
@@ -110,7 +110,7 @@ package and consumes only what that package publishes — `dist/`, `loader/`
 and whatever the `exports` map allows — which is the same surface any
 registry consumer sees. Until publication that is a locally packed
 tarball, which exercises the identical code path
-([ADR-004](docs/decisions.md#adr-004-published-package-name--recipe-ui-kit-unscoped)).
+([ADR-004](docs/decisions.md#adr-004-published-package-name)).
 
 Data crosses the boundary as **props**, and facts come back as
 **CustomEvents**; slots carry host-owned markup into the library's

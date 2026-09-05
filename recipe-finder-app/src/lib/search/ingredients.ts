@@ -9,7 +9,7 @@
  * Values must match TheMealDB's ingredient spelling exactly, since they are
  * passed straight to `filter.php?i=`.
  */
-import type { FilterOption } from 'recipe-ui-kit';
+import type { FilterOption } from '@srikar_sundram/recipe-ui-kit';
 
 export const COMMON_INGREDIENTS: FilterOption[] = [
 	{ value: 'Chicken', label: 'Chicken' },

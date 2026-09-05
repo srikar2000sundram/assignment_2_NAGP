@@ -3,7 +3,7 @@ import { favorites } from './favorites.svelte';
 import { mealPlan } from './mealPlan.svelte';
 import { userRecipes } from './userRecipes.svelte';
 import { WEEKDAYS } from '$lib/types/recipe';
-import type { RecipeFormValue } from 'recipe-ui-kit';
+import type { RecipeFormValue } from '@srikar_sundram/recipe-ui-kit';
 
 /**
  * Runs in the `client` vitest project (real Chromium, real localStorage) because
